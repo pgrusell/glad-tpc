@@ -264,12 +264,15 @@ void reader(const char* inputSimFile, Int_t event)
                 {
                     ppoint = (R3BGTPCProjPoint*)gtpcProjPointCA->At(h);
 
-                    xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
-                    zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
-                    tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
+                    //xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
+                    //zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
+                    htrackInPads->GetBinXYZ(ppoint->GetVirtualPadID(), xPad, zPad, yPad);
+                    xPad--;
+                    zPad--;
+		    tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
 
-                    htrackInPads->Fill(zPad, xPad, ppoint->GetCharge());
-                    hdriftTimeInPads->Fill(zPad, xPad, tPad); // NOTE: THAT IS ACCUMULATED TIME!!
+                    htrackInPads->Fill(xPad, zPad, ppoint->GetCharge());
+                    hdriftTimeInPads->Fill(xPad, zPad, tPad); // NOTE: THAT IS ACCUMULATED TIME!!
                     hdepth1InPads->Fill(tPad, zPad, ppoint->GetCharge());
                     hdepth2InPads->Fill(tPad, xPad, ppoint->GetCharge());
                 }

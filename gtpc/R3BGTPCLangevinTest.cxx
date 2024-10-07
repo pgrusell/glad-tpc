@@ -282,8 +282,14 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
 
     // Esto genera las posiciones de electrones sobre una malla. EN COORDENADAS DE GLAD-TPC.
 
-    Double_t dx = 2 * fHalfSizeTPC_X / 15.;
-    Double_t dz = 2 * fHalfSizeTPC_Z / 40.;
+    //Int_t gridXNb = 16;
+    //Int_t gridZNb = 40;
+
+    Int_t gridXNb = 4;
+    Int_t gridZNb = 4;
+
+    Double_t dx = 2 * fHalfSizeTPC_X / (Double_t) gridZNb;
+    Double_t dz = 2 * fHalfSizeTPC_Z / (Double_t) gridXNb;
 
     Double_t ele_x_r3b; 
     Double_t ele_y_r3b;
@@ -292,9 +298,9 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     TH2D *histo = new TH2D("histo", "histo", 44, 0, 44, 128, 0, 128);
 
 
-    for (Int_t gridPoint_z = 1; gridPoint_z < 40; gridPoint_z++)
+    for (Int_t gridPoint_z = 1; gridPoint_z < gridZNb; gridPoint_z++)
     { // 39 points from 5 to 195 cm (200cm long TPC)
-        for (Int_t gridPoint_x = 1; gridPoint_x < 16; gridPoint_x++)
+        for (Int_t gridPoint_x = 1; gridPoint_x < gridXNb; gridPoint_x++)
         { // 15 points from 5 to 75 cm (80cm wide TPC)
 
             // Empezaremos simplificando esto ya que no hay rotación relativa
@@ -467,7 +473,7 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
 
                 histo->Reset();
 
-                padID = histo->Fill(projX, projZ);
+                padID = histo->Fill(padX, padZ);
 
 
                 // cout << "padID: " << padID << endl;
