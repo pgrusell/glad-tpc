@@ -142,23 +142,13 @@ void reader(const char* inputSimFile, Int_t event)
 
     htrackInPads = new TH2D("htrackInPads",
                             "All tracks in the XZ Pads Plane",
-                            histoBins2,
-                            0,
-                            2 * fHalfSizeTPC_Z * fSizeOfVirtualPad,
-                            histoBins,
-                            0,
-                            2 * fHalfSizeTPC_X * fSizeOfVirtualPad); // in [pad number]
+                            44, 0, 44, 128, 0, 128); // in [pad number]
     htrackInPads->SetYTitle("X [pad number]");
     htrackInPads->SetXTitle("Z [pad number]");
 
     hdriftTimeInPads = new TH2D("hdriftTimeInPads",
                                 "All tracks in the XZ Pads Plane with drift time",
-                                histoBins2,
-                                0,
-                                2 * fHalfSizeTPC_Z * fSizeOfVirtualPad,
-                                histoBins,
-                                0,
-                                2 * fHalfSizeTPC_X * fSizeOfVirtualPad); // in [pad number]
+                                44, 0, 44, 128, 0, 128); // in [pad number]
     hdriftTimeInPads->SetYTitle("X [pad number]");
     hdriftTimeInPads->SetXTitle("Z [pad number]");
 
@@ -215,7 +205,8 @@ void reader(const char* inputSimFile, Int_t event)
     Int_t padsPerEvent = 0;
     Int_t nb = 0;
     Int_t beamPadsWithSignalPerEvent, productPadsWithSignalPerEvent;
-    Double_t xPad, zPad, tPad;
+    Int_t xPad, zPad, yPad;
+    Double_t tPad;
     Int_t numberOfTimeHistos = 0;
 
     if (h1_ProjPoint_TimeExample)
@@ -232,8 +223,11 @@ void reader(const char* inputSimFile, Int_t event)
             {
                 ppoint = (R3BGTPCProjPoint*)gtpcProjPointCA->At(h);
 
-                xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
-                zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
+                //xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
+                //zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
+                htrackInPads->GetBinXYZ(xPad, zPad, yPad);
+                xPad--;
+                zPad--;
                 tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
 
                 htrackInPads->Fill(zPad, xPad, ppoint->GetCharge());
