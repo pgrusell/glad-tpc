@@ -4,9 +4,9 @@ void run_lang_test()
     timer.Start();
 
     // Input file: simulation
-    TString inFile = "../sim/sim.root";
+    TString inFile = "../sim/sim_lang.root";
     // Input file: parameters
-    TString parFile = "../sim/par.root";
+    TString parFile = "../sim/Prototype/par_lang.root";
     // Output file
     TString outFile = "lang_test.root";
 

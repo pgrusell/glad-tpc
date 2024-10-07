@@ -24,6 +24,8 @@
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
+#include "FairTask.h"
+#include "TH2D.h"
 using namespace std;
 
 R3BGTPCLangevinTest::R3BGTPCLangevinTest()
@@ -281,11 +283,13 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     // Esto genera las posiciones de electrones sobre una malla. EN COORDENADAS DE GLAD-TPC.
 
     Double_t dx = 2 * fHalfSizeTPC_X / 15.;
-    Double_t dy = 2 * fHalfSizeTPC_Z / 40.;
+    Double_t dz = 2 * fHalfSizeTPC_Z / 40.;
 
     Double_t ele_x_r3b; 
     Double_t ele_y_r3b;
     Double_t ele_z_r3b;
+
+    TH2D *histo = new TH2D("histo", "histo", 44, 0, 44, 128, 0, 128);
 
 
     for (Int_t gridPoint_z = 1; gridPoint_z < 40; gridPoint_z++)
@@ -370,9 +374,9 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                    ele_z_r3b = ele_z + 271.;
 
                                                   // while not reaching the pad plane [cm]
-                    B_x = 0.1 * gladField->GetBx(ele_x_rb3, ele_y_r3b, ele_z_r3b); // Field components return in [kG], moved to [T]
-                    B_y = 0.1 * gladField->GetBy(ele_x_rb3, ele_y_r3b, ele_z_r3b);
-                    B_z = 0.1 * gladField->GetBz(ele_x_rb3, ele_y_r3b, ele_z_rb3);
+                    B_x = 0.1 * gladField->GetBx(ele_x_r3b, ele_y_r3b, ele_z_r3b); // Field components return in [kG], moved to [T]
+                    B_y = 0.1 * gladField->GetBy(ele_x_r3b, ele_y_r3b, ele_z_r3b);
+                    B_z = 0.1 * gladField->GetBz(ele_x_r3b, ele_y_r3b, ele_z_r3b);
 
                     // if(ele==0) cout << "Field for (" << ele_x << "," << ele_y << "," << ele_z << ")" << B_x << " " <<
                     // B_y << " "  << B_z << " "  << endl;
@@ -461,7 +465,7 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                 Double_t padX = (projX + fHalfSizeTPC_X) * 44 / 2 / fHalfSizeTPC_X;
                 Double_t padZ = (projZ + fHalfSizeTPC_Z) * 128 / 2 / fHalfSizeTPC_Z;
 
-                auto *histo = new TH2D("", "", 44, 0, 44, 128, 0, 128);
+                histo->Reset();
 
                 padID = histo->Fill(projX, projZ);
 

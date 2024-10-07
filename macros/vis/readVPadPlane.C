@@ -16,7 +16,7 @@
 //      root[1] reader("inputFile")
 //      root[2] guiForPads(0)
 // --------------------------------------------------------------
-//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////*/
 #include <TCanvas.h>
 #include <TControlBar.h>
 #include <TFile.h>
@@ -225,13 +225,14 @@ void reader(const char* inputSimFile, Int_t event)
 
                 //xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
                 //zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
-                htrackInPads->GetBinXYZ(xPad, zPad, yPad);
+		
+                htrackInPads->GetBinXYZ(ppoint->GetVirtualPadID(), xPad, zPad, yPad);
                 xPad--;
                 zPad--;
                 tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
 
-                htrackInPads->Fill(zPad, xPad, ppoint->GetCharge());
-                hdriftTimeInPads->Fill(zPad, xPad, tPad);
+                htrackInPads->Fill(xPad, zPad, ppoint->GetCharge());
+                hdriftTimeInPads->Fill(xPad, zPad, tPad);
                 hdepth1InPads->Fill(tPad, zPad, ppoint->GetCharge());
                 hdepth2InPads->Fill(tPad, xPad, ppoint->GetCharge());
 
