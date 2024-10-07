@@ -9,7 +9,7 @@ HOW TO USE:
 ALTERNATIVE:
     use the macro run_simHYDRA.C: root -l run_simHYDRA.C
 */
-void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
+void simHYDRA(Int_t nEvents = 1, TString GEOTAG = "Prototype",
               TString generator = "good_evt") {
   Bool_t storeTrajectories = kTRUE; //  To store particle trajectories
   Bool_t magnet = kTRUE;            //	Switch on/off the B field
@@ -21,8 +21,8 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
   TString transport = "TGeant4";
   cout << "The generator used is:\033[1;32m" << generator << endl;
   TString inputFile;
-  TString outFile = "./" + GEOTAG + "/sim.root";
-  TString parFile = "./" + GEOTAG + "/par.root";
+  TString outFile = "sim_lang.root";
+  TString parFile = "./" + GEOTAG +  "/par_lang.root";
 
   cout << "\033[1;31m Warning\033[0m: The detector is: " << GEOTAG << endl;
 
@@ -66,7 +66,7 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
 
   // GLAD
   run->AddModule(new R3BGladMagnet(
-      "glad_v17_flange.geo.root")); // GLAD should not be moved or rotated
+      "glad_s455_v2023.1.geo.root")); // GLAD should not be moved or rotated
 
   // --- GLAD-TPC detectors
   if (GEOTAG.CompareTo("Prototype") == 0) {
@@ -98,10 +98,16 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
                              450.0); // z_max
 
   if (magnet) {
-    if (constBfield)
+    if (constBfield){
       run->SetField(constField);
-    else
-      run->SetField(magField);
+      R3BFieldPar *fieldPar = (R3BFieldPar *)rtdb->getContainer("R3BFieldPar");
+      fieldPar->SetParameters(magField);
+      fieldPar->setChanged();} 
+
+
+
+   else
+      {run->SetField(magField);}
   } else
     run->SetField(NULL);
 
@@ -143,14 +149,23 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
 
   // -----   Runtime database   ---------------------------------------------
   R3BFieldPar *fieldPar = (R3BFieldPar *)rtdb->getContainer("R3BFieldPar");
-  if (NULL != magField) {
-    if (constBfield)
-      fieldPar->SetParameters(constField);
-    else
-      fieldPar->SetParameters(magField);
+ 
 
-    fieldPar->setChanged();
-  }
+
+ if (NULL != magField) {
+    //if (constBfield)
+      //fieldPar->SetParameters(constField);
+    //else
+      //fieldPar->SetParameters(magField);
+
+    //fieldPar->setChanged();
+   }
+
+
+
+
+
+
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(parFile.Data());
