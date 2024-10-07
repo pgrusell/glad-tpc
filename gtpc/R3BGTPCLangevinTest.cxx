@@ -38,9 +38,14 @@ R3BGTPCLangevinTest::R3BGTPCLangevinTest()
     fTransDiff = 0.00000216;         // [cm^2/ns] just initial value
     fLongDiff = 0.00000216;          // [cm^2/ns] just initial value
     fFanoFactor = 2;                 // NOTUSED
-    fHalfSizeTPC_X = 40.;            //[cm] to be used with the output of create_tpc_geo_test.C
-    fHalfSizeTPC_Y = 20.;            //
-    fHalfSizeTPC_Z = 100.;           //
+    //fHalfSizeTPC_X = 40.;            //[cm] to be used with the output of create_tpc_geo_test.C
+    //fHalfSizeTPC_Y = 20.;            //
+    //fHalfSizeTPC_Z = 100.;           //
+
+    fHalfSizeTPC_X = 4.4;             /// Estas son las dimensiones del blanco activo, descubir
+    fHalfSizeTPC_Y = 14.7;              /// si son esas las que tengo usa o no...
+    fHalfSizeTPC_Z = 12.8;
+
     fSizeOfVirtualPad = 100.;        // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
     fNumberOfGeneratedElectrons = 0; // Number of electrons to generate in each point of the test
 }
@@ -219,12 +224,19 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     Double_t mu = 1.E+5 * fDriftVelocity / E_y; // [m2 s-1 V-1] TODO check value, move to parameter container
 
     // from create_tpc_geo_test.C (geo in file R3BRoot/glad-tpc/geometry/gladTPC_test.geo.root)
-    Double_t TargetOffsetX = 40;
-    Double_t TargetOffsetY = 0;
-    Double_t TargetOffsetZ = 260;      // USING INSTEAD THE FIELD MAP DESPLACEMENT! MISMATCH
-    Double_t TargetOffsetZ_FM = 263.4; // FIELD MAP DESPLACEMENT
+    //Double_t TargetOffsetX = 40; //NOT USED
+    //Double_t TargetOffsetY = 0; 
+    //Double_t TargetOffsetZ = 260;      // USING INSTEAD THE FIELD MAP DESPLACEMENT! MISMATCH
+    //Double_t TargetOffsetZ_FM = 263.4; // FIELD MAP DESPLACEMENT
 
-    Double_t TargetAngle = 14. * 3.14159 / 180;
+    //Double_t TargetAngle = 14. * 3.14159 / 180;
+
+    // from glad-tpc/params/HYDRAprototype_FileSetup_v2_02082022.par
+    Double_t TargetOffsetX = -10.825;
+    Double_t TargetOffsetY = 0.;
+    Double_t TargetOffsetZ = -91.85; 
+    Double_t TargetOffsetZ_FM = 263.4; ////// BUSCARLO!!!!!!!
+    Double_t TargetAngle = 0.;
 
     B_x = 0.1 * gladField->GetBx(0, 0, 163.4); // Field components return in [kG], moved to [T]
     B_y = 0.1 * gladField->GetBy(0, 0, 163.4);
@@ -258,14 +270,42 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     B_z = 0.1 * gladField->GetBz(0.0,0.0,163.4);
     cout << "Field for (25,50,240)" << B_x << " "  << B_y << " "  << B_z << " "  << endl;
   */
+
+    /* ADAPTACIONES NECESARIAS PARA ESTA PARTE DEL CÓDIGO:
+    
+    1. Modificar los multiplicadores de gridPoint para que recorra la TPC siguiendo las dimensiones correctas.
+    2. Modificar la forma en la que calcula ele_x_init y ele_z_init.
+    
+    */
+
+    // Esto genera las posiciones de electrones sobre una malla. EN COORDENADAS DE GLAD-TPC.
+
+    Double_t dx = 2 * fHalfSizeTPC_X / 15.;
+    Double_t dy = 2 * fHalfSizeTPC_Z / 40.;
+
+    Double_t ele_x_r3b; 
+    Double_t ele_y_r3b;
+    Double_t ele_z_r3b;
+
+
     for (Int_t gridPoint_z = 1; gridPoint_z < 40; gridPoint_z++)
     { // 39 points from 5 to 195 cm (200cm long TPC)
         for (Int_t gridPoint_x = 1; gridPoint_x < 16; gridPoint_x++)
         { // 15 points from 5 to 75 cm (80cm wide TPC)
-            ele_x_init =
-                +cos(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * 5) + sin(-TargetAngle) * (gridPoint_z * 5);
-            ele_z_init = (TargetOffsetZ_FM - fHalfSizeTPC_Z) - sin(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * 5) +
-                         cos(-TargetAngle) * (gridPoint_z * 5);
+
+            // Empezaremos simplificando esto ya que no hay rotación relativa
+            //ele_x_init =
+                //+cos(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * dx) + sin(-TargetAngle) * (gridPoint_z * dz);
+
+            ele_x_init = -fHalfSizeTPC_X + gridPoint_x * dx;
+            ele_z_init = -fHalfSizeTPC_Z + gridPoint_z * dz;
+
+
+            //ele_z_init = (TargetOffsetZ_FM - fHalfSizeTPC_Z) - sin(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * dx) +
+                         //cos(-TargetAngle) * (gridPoint_z * dz);
+
+
+
             if (evtID == 0)
                 ele_y_init = -fHalfSizeTPC_Y + 2.5; // 2.5cm above the padplane
             else if (evtID == 1)
@@ -294,6 +334,10 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
             sigmaLongAtPadPlane = sqrt(driftDistance * 2 * fLongDiff / fDriftVelocity);
             sigmaTransvAtPadPlane = sqrt(driftDistance * 2 * fTransDiff / fDriftVelocity);
 
+            ///////// YO CREO QUE ESTE BUCLE ES REDUNDANTE, LO ÚNICO QUE HACE ES CALCULAR ELE_I Y DESPUÉS
+            //////// APLICAR SOBRE EL MISMO ELE_I UN DESENFOQUE GAUSSIANO, NO CREO QUE SEA LO QUE SE PRE-
+            /////// TENDÍA HACER PERO BUENO...
+
             // ele_x = ele_x_init; ele_y = ele_y_init; ele_z = ele_z_init;
             for (Int_t ele = 0; ele < fNumberOfGeneratedElectrons; ele++)
             {
@@ -312,13 +356,23 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                            << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
 
                 // cout <<  "R3BGTPCLangevinTest::Exec, INITIAL VALUES: timeBeforeDrift="<< accDriftTime << " [ns]"
-                //     << " ele_x=" << ele_x <<" ele_y=" << ele_y <<" ele_z=" << ele_z << " [cm]" << endl;
+                //     << " ele_x=" << ele_x <<" ele_y=" << ele_y <<" ele_z=" << ele_z << " [cm]" << end
+
+
+                // Justo aquí las coordenadas siguen siendo las de glad-tpc pero luce que deberían ser las de 
+                // R3B...
+
 
                 while (ele_y > -fHalfSizeTPC_Y)
-                {                                                      // while not reaching the pad plane [cm]
-                    B_x = 0.1 * gladField->GetBx(ele_x, ele_y, ele_z); // Field components return in [kG], moved to [T]
-                    B_y = 0.1 * gladField->GetBy(ele_x, ele_y, ele_z);
-                    B_z = 0.1 * gladField->GetBz(ele_x, ele_y, ele_z);
+                {                        
+                   ele_x_r3b = ele_x + 8.6; 
+                   ele_y_r3b = ele_y;
+                   ele_z_r3b = ele_z + 271.;
+
+                                                  // while not reaching the pad plane [cm]
+                    B_x = 0.1 * gladField->GetBx(ele_x_rb3, ele_y_r3b, ele_z_r3b); // Field components return in [kG], moved to [T]
+                    B_y = 0.1 * gladField->GetBy(ele_x_rb3, ele_y_r3b, ele_z_r3b);
+                    B_z = 0.1 * gladField->GetBz(ele_x_rb3, ele_y_r3b, ele_z_rb3);
 
                     // if(ele==0) cout << "Field for (" << ele_x << "," << ele_y << "," << ele_z << ")" << B_x << " " <<
                     // B_y << " "  << B_z << " "  << endl;
@@ -376,10 +430,17 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                 // from 2*fHalfSizeTPC_X to 4*fHalfSizeTPC_X in the second row, ...
                 // if fSizeOfVirtualPad=0.1, then padID goes from 0 to 20*fHalfSizeTPC_X,
                 // from 20*fHalfSizeTPC_X to 40*fHalfSizeTPC_X, ...
-                // Avoid first moving out of the virtual pad plane limits
+                // Avoid first moving out of the virtual pad plane limi
 
-                projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
-                projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
+                // en este último paso lo que hace es proyectar los puntos del eje y = 0 de glad-tpc sobre el pad plane
+                // en general esto es innecesario porque no hay rotación relativa entre ellos.  Yo propondría dejarlos
+                // directamente uno sobre el otro y ya se estudiará en más detalle si es necesario.
+                
+                projX = ele_x; 
+                projZ = ele_z;
+
+                //projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
+                //projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
 
                 // CHECK... COMMENT ME
                 /*cout << "Final Pos: " << ele_x<< "," << ele_y<< "," << ele_z << "),("<< projX <<","<< -fHalfSizeTPC_Y
@@ -390,8 +451,21 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                 // if(projX<TargetOffsetX-fHalfSizeTPC_X) projX=TargetOffsetX-fHalfSizeTPC_X;
                 // if(projX>TargetOffsetX+fHalfSizeTPC_X) projX=TargetOffsetX+fHalfSizeTPC_X;
 
-                Int_t padID = (2 * fHalfSizeTPC_X * fSizeOfVirtualPad) * (Int_t)((projZ)*fSizeOfVirtualPad) +
-                              (Int_t)((projX - fHalfSizeTPC_X) * fSizeOfVirtualPad);
+                // No es la forma que más me gusta de expresa padID propongo una alternativa asociada al bin que se está
+                // llenando en un histograma.
+
+                //Int_t padID = (2 * fHalfSizeTPC_X * fSizeOfVirtualPad) * (Int_t)((projZ)*fSizeOfVirtualPad) +
+                              //(Int_t)((projX - fHalfSizeTPC_X) * fSizeOfVirtualPad);
+
+                Int_t padID;
+                Double_t padX = (projX + fHalfSizeTPC_X) * 44 / 2 / fHalfSizeTPC_X;
+                Double_t padZ = (projZ + fHalfSizeTPC_Z) * 128 / 2 / fHalfSizeTPC_Z;
+
+                auto *histo = new TH2D("", "", 44, 0, 44, 128, 0, 128);
+
+                padID = histo->Fill(projX, projZ);
+
+
                 // cout << "padID: " << padID << endl;
 
                 Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();
