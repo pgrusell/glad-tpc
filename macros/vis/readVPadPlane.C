@@ -16,7 +16,7 @@
 //      root[1] reader("inputFile")
 //      root[2] guiForPads(0)
 // --------------------------------------------------------------
-//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////*/
 #include <TCanvas.h>
 #include <TControlBar.h>
 #include <TFile.h>
@@ -102,6 +102,7 @@ void reader(const char* inputSimFile, Int_t event)
     Double_t fMaxDriftTime = (round)((geoPar->GetActiveRegiony() / gasPar->GetDriftVelocity()) * pow(10, -3)); // us
     // END OF SETUP
 
+
     gROOT->SetStyle("Default");
     gStyle->SetPalette(kSolar);
     // gStyle->SetPalette(kDarkRainBow);
@@ -140,27 +141,25 @@ void reader(const char* inputSimFile, Int_t event)
     TH1S** h1_ProjPoint_TimeExample = 0;
     // THStack *hs = new THStack("hs","Stacked time histograms using kSolar palette");
 
+
     htrackInPads = new TH2D("htrackInPads",
                             "All tracks in the XZ Pads Plane",
-                            histoBins2,
-                            0,
-                            2 * fHalfSizeTPC_Z * fSizeOfVirtualPad,
-                            histoBins,
-                            0,
-                            2 * fHalfSizeTPC_X * fSizeOfVirtualPad); // in [pad number]
-    htrackInPads->SetYTitle("X [pad number]");
-    htrackInPads->SetXTitle("Z [pad number]");
+                            histoBins, 0, histoBins, histoBins2, 0, histoBins2); // in [pad number]
+    htrackInPads->SetYTitle("Z [pad number]");
+    htrackInPads->SetXTitle("X [pad number]");
+
+
 
     hdriftTimeInPads = new TH2D("hdriftTimeInPads",
                                 "All tracks in the XZ Pads Plane with drift time",
-                                histoBins2,
-                                0,
-                                2 * fHalfSizeTPC_Z * fSizeOfVirtualPad,
                                 histoBins,
                                 0,
-                                2 * fHalfSizeTPC_X * fSizeOfVirtualPad); // in [pad number]
-    hdriftTimeInPads->SetYTitle("X [pad number]");
-    hdriftTimeInPads->SetXTitle("Z [pad number]");
+                                histoBins,
+                                histoBins2,
+                                0,
+                                histoBins2); // in [pad number]
+    hdriftTimeInPads->SetYTitle("Z [pad number]");
+    hdriftTimeInPads->SetXTitle("X [pad number]");
 
     hdepth1InPads = new TH2D("hdepth1InPads",
                              "track In the Drift-Z Pads Plane",
@@ -169,7 +168,7 @@ void reader(const char* inputSimFile, Int_t event)
                              fMaxDriftTime,
                              histoBins2,
                              0,
-                             2 * fHalfSizeTPC_Z * fSizeOfVirtualPad);
+                             histoBins2);
     hdepth1InPads->SetYTitle("Z [pad number]");
     hdepth1InPads->SetXTitle("(drift) time [us]");
 
@@ -180,7 +179,7 @@ void reader(const char* inputSimFile, Int_t event)
                              fMaxDriftTime,
                              histoBins,
                              0,
-                             2 * fHalfSizeTPC_X * fSizeOfVirtualPad);
+                             histoBins);
     hdepth2InPads->SetYTitle("X [pad number]");
     hdepth2InPads->SetXTitle("(drift) time [us]");
 
@@ -215,7 +214,8 @@ void reader(const char* inputSimFile, Int_t event)
     Int_t padsPerEvent = 0;
     Int_t nb = 0;
     Int_t beamPadsWithSignalPerEvent, productPadsWithSignalPerEvent;
-    Double_t xPad, zPad, tPad;
+    Double_t tPad;
+    Int_t xPad, zPad, yPad;
     Int_t numberOfTimeHistos = 0;
 
     if (h1_ProjPoint_TimeExample)
@@ -232,12 +232,13 @@ void reader(const char* inputSimFile, Int_t event)
             {
                 ppoint = (R3BGTPCProjPoint*)gtpcProjPointCA->At(h);
 
-                xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
-                zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
+                //xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
+                //zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
                 tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
+		htrackInPads->GetBinXYZ(ppoint->GetVirtualPadID(), xPad, zPad, yPad);
 
-                htrackInPads->Fill(zPad, xPad, ppoint->GetCharge());
-                hdriftTimeInPads->Fill(zPad, xPad, tPad);
+                htrackInPads->Fill(xPad, zPad, ppoint->GetCharge());
+                hdriftTimeInPads->Fill(xPad, zPad, tPad);
                 hdepth1InPads->Fill(tPad, zPad, ppoint->GetCharge());
                 hdepth2InPads->Fill(tPad, xPad, ppoint->GetCharge());
 
@@ -269,12 +270,13 @@ void reader(const char* inputSimFile, Int_t event)
                 {
                     ppoint = (R3BGTPCProjPoint*)gtpcProjPointCA->At(h);
 
-                    xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
-                    zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
+                    //xPad = ppoint->GetVirtualPadID() % (Int_t)(44);
+                    //zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
                     tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
+		    htrackInPads->GetBinXYZ(ppoint->GetVirtualPadID(), xPad, zPad, yPad);
 
-                    htrackInPads->Fill(zPad, xPad, ppoint->GetCharge());
-                    hdriftTimeInPads->Fill(zPad, xPad, tPad); // NOTE: THAT IS ACCUMULATED TIME!!
+                    htrackInPads->Fill(xPad, zPad, ppoint->GetCharge());
+                    hdriftTimeInPads->Fill(xPad, zPad, tPad); // NOTE: THAT IS ACCUMULATED TIME!!
                     hdepth1InPads->Fill(tPad, zPad, ppoint->GetCharge());
                     hdepth2InPads->Fill(tPad, xPad, ppoint->GetCharge());
                 }

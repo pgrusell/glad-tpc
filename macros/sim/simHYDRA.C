@@ -66,7 +66,7 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
 
   // GLAD
   run->AddModule(new R3BGladMagnet(
-      "glad_v17_flange.geo.root")); // GLAD should not be moved or rotated
+      "glad_s455_v2023.1.geo.root")); // GLAD should not be moved or rotated
 
   // --- GLAD-TPC detectors
   if (GEOTAG.CompareTo("Prototype") == 0) {
@@ -143,14 +143,14 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
 
   // -----   Runtime database   ---------------------------------------------
   R3BFieldPar *fieldPar = (R3BFieldPar *)rtdb->getContainer("R3BFieldPar");
-  if (NULL != magField) {
-    if (constBfield)
-      fieldPar->SetParameters(constField);
-    else
-      fieldPar->SetParameters(magField);
+  //if (NULL != magField) {
+    //if (constBfield)
+      //fieldPar->SetParameters(constField);
+    //else
+      //fieldPar->SetParameters(magField);
 
-    fieldPar->setChanged();
-  }
+    //fieldPar->setChanged();
+  //}
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(parFile.Data());

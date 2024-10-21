@@ -24,6 +24,7 @@
 #include "FairRootManager.h"
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
+#include <TH2D.h>
 using namespace std;
 
 R3BGTPCLangevinTest::R3BGTPCLangevinTest()
@@ -38,10 +39,10 @@ R3BGTPCLangevinTest::R3BGTPCLangevinTest()
     fTransDiff = 0.00000216;         // [cm^2/ns] just initial value
     fLongDiff = 0.00000216;          // [cm^2/ns] just initial value
     fFanoFactor = 2;                 // NOTUSED
-    fHalfSizeTPC_X = 40.;            //[cm] to be used with the output of create_tpc_geo_test.C
-    fHalfSizeTPC_Y = 20.;            //
-    fHalfSizeTPC_Z = 100.;           //
-    fSizeOfVirtualPad = 100.;        // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
+    fHalfSizeTPC_X = 4.4;            //[cm] to be used with the output of create_tpc_geo_test.C
+    fHalfSizeTPC_Y = 14.7;            //
+    fHalfSizeTPC_Z = 12.8;           //
+    fSizeOfVirtualPad = 5.;        // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
     fNumberOfGeneratedElectrons = 0; // Number of electrons to generate in each point of the test
 }
 
@@ -165,6 +166,9 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     //}
 
     R3BGladFieldMap* gladField = (R3BGladFieldMap*)FairRunAna::Instance()->GetField();
+    auto *histoID = new TH2D("histoID", "histoID", (Int_t) (2 * fHalfSizeTPC_X * fSizeOfVirtualPad), 0,
+                                2 * fHalfSizeTPC_X * fSizeOfVirtualPad, (Int_t) (2 * fHalfSizeTPC_Z * fSizeOfVirtualPad),
+                                0, 2 * fHalfSizeTPC_Z * fSizeOfVirtualPad);
 
     R3BGTPCPoint* aPoint;
     // R3BGTPCProjPoint* aProjPoint;
@@ -177,6 +181,7 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     Int_t evtID;
     Int_t PDGCode, MotherId;
     Double_t Vertex_x0, Vertex_y0, Vertex_z0, Vertex_px0, Vertex_py0, Vertex_pz0;
+
     for (Int_t i = 0; i < nPoints; i++)
     {
         aPoint = (R3BGTPCPoint*)fGTPCPoints->At(i);
@@ -216,15 +221,15 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     Double_t sigmaLongStep;
     Double_t sigmaTransvStep;
     Double_t driftTimeStep;
-    Double_t mu = 1.E+5 * fDriftVelocity / E_y; // [m2 s-1 V-1] TODO check value, move to parameter container
+    Double_t mu = 1.E+7 * fDriftVelocity / E_y; // [m2 s-1 V-1] TODO check value, move to parameter container
 
     // from create_tpc_geo_test.C (geo in file R3BRoot/glad-tpc/geometry/gladTPC_test.geo.root)
-    Double_t TargetOffsetX = 40;
+    Double_t TargetOffsetX =  40;
     Double_t TargetOffsetY = 0;
     Double_t TargetOffsetZ = 260;      // USING INSTEAD THE FIELD MAP DESPLACEMENT! MISMATCH
     Double_t TargetOffsetZ_FM = 263.4; // FIELD MAP DESPLACEMENT
 
-    Double_t TargetAngle = 14. * 3.14159 / 180;
+    Double_t TargetAngle = 45. * 3.14159 / 180;
 
     B_x = 0.1 * gladField->GetBx(0, 0, 163.4); // Field components return in [kG], moved to [T]
     B_y = 0.1 * gladField->GetBy(0, 0, 163.4);
@@ -256,26 +261,35 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     /*B_x = 0.1 * gladField->GetBx(0.0,0.0,163.4);//Field components return in [kG], moved to [T]
     B_y = 0.1 * gladField->GetBy(0.0,0.0,163.4);
     B_z = 0.1 * gladField->GetBz(0.0,0.0,163.4);
-    cout << "Field for (25,50,240)" << B_x << " "  << B_y << " "  << B_z << " "  << endl;
-  */
-    for (Int_t gridPoint_z = 1; gridPoint_z < 40; gridPoint_z++)
+    cout << "Field for (25,50,240)" << B_x << " "  << B_y << " "  << B_z << " "  << endl;*/
+
+
+    for (Int_t gridPoint_z = 0; gridPoint_z < 8; gridPoint_z++)
     { // 39 points from 5 to 195 cm (200cm long TPC)
-        for (Int_t gridPoint_x = 1; gridPoint_x < 16; gridPoint_x++)
+        for (Int_t gridPoint_x = 0; gridPoint_x < 8; gridPoint_x++)
         { // 15 points from 5 to 75 cm (80cm wide TPC)
+
             ele_x_init =
-                +cos(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * 5) + sin(-TargetAngle) * (gridPoint_z * 5);
-            ele_z_init = (TargetOffsetZ_FM - fHalfSizeTPC_Z) - sin(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * 5) +
-                         cos(-TargetAngle) * (gridPoint_z * 5);
+                +cos(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * 15) + sin(-TargetAngle) * (gridPoint_z * 15);
+            ele_z_init = (TargetOffsetZ_FM - fHalfSizeTPC_Z) - sin(-TargetAngle) * (-fHalfSizeTPC_X + gridPoint_x * 15) +
+                         cos(-TargetAngle) * (gridPoint_z * 15);
+
+
+	    //ele_x_init = -fHalfSizeTPC_X + gridPoint_x * 10;
+            ///////////////ele_y_init = -fHalfSizeTPC_Z + gridPoint_z * 10;
+
             if (evtID == 0)
-                ele_y_init = -fHalfSizeTPC_Y + 2.5; // 2.5cm above the padplane
+                ele_y_init = -fHalfSizeTPC_Y + 25.; // 5cm above the padplane
             else if (evtID == 1)
-                ele_y_init = -fHalfSizeTPC_Y + 28.5; // 28.5cm above the padplane
+                ele_y_init = -fHalfSizeTPC_Y + 10.; // 10cm above the padplane
             else if (evtID == 2)
-                ele_y_init = TargetOffsetY - fHalfSizeTPC_Y + 15; // 15cm above the padplane
+                ele_y_init =  - fHalfSizeTPC_Y + 15.; // 15cm above the padplane
             else if (evtID == 3)
-                ele_y_init = TargetOffsetY - fHalfSizeTPC_Y + 20; // 20cm above the padplane
+                ele_y_init =  - fHalfSizeTPC_Y + 20.; // 20cm above the padplane
             else if (evtID == 4)
-                ele_y_init = TargetOffsetY - fHalfSizeTPC_Y + 25; // 25cm above the padplane
+                ele_y_init =  - fHalfSizeTPC_Y + 25; // 25cm above the padplane
+	    else if (evtID == 5)
+		ele_y_init = - fHalfSizeTPC_Y + 30.; 
             else
             {
                 LOG(info) << "Event ID larger than neccesary for the grid test.";
@@ -319,6 +333,7 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                     B_x = 0.1 * gladField->GetBx(ele_x, ele_y, ele_z); // Field components return in [kG], moved to [T]
                     B_y = 0.1 * gladField->GetBy(ele_x, ele_y, ele_z);
                     B_z = 0.1 * gladField->GetBz(ele_x, ele_y, ele_z);
+ 
 
                     // if(ele==0) cout << "Field for (" << ele_x << "," << ele_y << "," << ele_z << ")" << B_x << " " <<
                     // B_y << " "  << B_z << " "  << endl;
@@ -353,7 +368,7 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                                            cteMod); // should be reduced by the factor cteMod=cteMult/mu
                     sigmaLongStep =
                         sqrt(driftTimeStep * 2 * fLongDiff); // should be the same scaled to the length of the step
-                    ele_x = gRandom->Gaus(ele_x + 1.E-7 * vDrift_x * driftTimeStep,
+                    ele_x = gRandom->Gaus(ele_x + 1.E-7* vDrift_x * driftTimeStep,
                                           sigmaTransvStep); // vDrift back to [cm/ns]
                     ele_y = gRandom->Gaus(ele_y - 1.E-7 * vDrift_y * driftTimeStep, sigmaLongStep);
                     ele_z = gRandom->Gaus(ele_z + 1.E-7 * vDrift_z * driftTimeStep, sigmaTransvStep);
@@ -390,8 +405,12 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                 // if(projX<TargetOffsetX-fHalfSizeTPC_X) projX=TargetOffsetX-fHalfSizeTPC_X;
                 // if(projX>TargetOffsetX+fHalfSizeTPC_X) projX=TargetOffsetX+fHalfSizeTPC_X;
 
-                Int_t padID = (2 * fHalfSizeTPC_X * fSizeOfVirtualPad) * (Int_t)((projZ)*fSizeOfVirtualPad) +
-                              (Int_t)((projX - fHalfSizeTPC_X) * fSizeOfVirtualPad);
+                //Int_t padID = (2 * fHalfSizeTPC_X * fSizeOfVirtualPad) * (Int_t)((projZ)*fSizeOfVirtualPad) +
+                              //(Int_t)((projX - fHalfSizeTPC_X) * fSizeOfVirtualPad);
+
+
+		Int_t padID = histoID->Fill(projZ, projX);
+
                 // cout << "padID: " << padID << endl;
 
                 Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();

@@ -4,9 +4,9 @@ void run_lang_test()
     timer.Start();
 
     // Input file: simulation
-    TString inFile = "../sim/sim.root";
+    TString inFile = "../sim/Prototype/sim.root";
     // Input file: parameters
-    TString parFile = "../sim/par.root";
+    TString parFile = "../sim/Prototype/par.root";
     // Output file
     TString outFile = "lang_test.root";
 
@@ -23,9 +23,9 @@ void run_lang_test()
     rtdb->print();
 
     R3BGTPCLangevinTest* lantest = new R3BGTPCLangevinTest();
-    lantest->SetDriftParameters(15.e-9, 0.0048, 0.00000216, 0.00000216, 2);
-    lantest->SetSizeOfVirtualPad(100); // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
-    lantest->SetNumberOfGeneratedElectrons(10);
+    lantest->SetDriftParameters(15.e-9, 0.0048, 0.00216, 0.00216, 2);
+    lantest->SetSizeOfVirtualPad(5); // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
+    lantest->SetNumberOfGeneratedElectrons(10000);
 
     fRun->AddTask(lantest);
 
