@@ -120,8 +120,12 @@ void reader(const char* inputSimFile, Int_t event)
 
     // HERE THE HISTOGRAMS ARE DEFINED...
     // IT IS POSSIBLE TO CHANGE THE RANGE AND THE BINNING
-    UInt_t histoBins = 2 * fHalfSizeTPC_X * fSizeOfVirtualPad;
-    UInt_t histoBins2 = 2 * fHalfSizeTPC_Z * fSizeOfVirtualPad;
+    Int_t histoBins = 2 * fHalfSizeTPC_X * fSizeOfVirtualPad;
+    Int_t histoBins2 = 2 * fHalfSizeTPC_Z * fSizeOfVirtualPad;
+
+
+    std::cout << "READ PAD PLANE " << histoBins << " " << histoBins2 << std::endl;
+
 
     if (!shown)
     {
@@ -237,6 +241,10 @@ void reader(const char* inputSimFile, Int_t event)
                 tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
 		htrackInPads->GetBinXYZ(ppoint->GetVirtualPadID(), xPad, zPad, yPad);
 
+		xPad--;
+		zPad--;
+
+
                 htrackInPads->Fill(xPad, zPad, ppoint->GetCharge());
                 hdriftTimeInPads->Fill(xPad, zPad, tPad);
                 hdepth1InPads->Fill(tPad, zPad, ppoint->GetCharge());
@@ -274,6 +282,9 @@ void reader(const char* inputSimFile, Int_t event)
                     //zPad = (ppoint->GetVirtualPadID() - xPad) / (44);
                     tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
 		    htrackInPads->GetBinXYZ(ppoint->GetVirtualPadID(), xPad, zPad, yPad);
+
+		    xPad--;
+		    zPad--;
 
                     htrackInPads->Fill(xPad, zPad, ppoint->GetCharge());
                     hdriftTimeInPads->Fill(xPad, zPad, tPad); // NOTE: THAT IS ACCUMULATED TIME!!

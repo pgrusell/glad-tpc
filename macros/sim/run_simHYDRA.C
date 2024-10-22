@@ -1,6 +1,6 @@
 {
   gROOT->ProcessLine(".L simHYDRA.C");
-  simHYDRA(8, "Prototype", "box");
+  simHYDRA(2, "Prototype", "box");
 }
 // simHYDRA(nevt,"Detector","generator")
 // Detector: "Prototype","FullBeamIn"
