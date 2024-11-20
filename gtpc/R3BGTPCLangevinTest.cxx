@@ -40,17 +40,15 @@ R3BGTPCLangevinTest::R3BGTPCLangevinTest()
     fLongDiff = 0.00000216;          // [cm^2/ns] just initial value
     fFanoFactor = 2;                 // NOTUSED
     fHalfSizeTPC_X = 4.4;            //[cm] to be used with the output of create_tpc_geo_test.C
-    fHalfSizeTPC_Y = 14.7;            // 
+    fHalfSizeTPC_Y = 14.7;           // 
     fHalfSizeTPC_Z = 12.8;           // 
-    fSizeOfVirtualPad = 5.;        // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
+    fSizeOfVirtualPad = 5.;          // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
     fNumberOfGeneratedElectrons = 0; // Number of electrons to generate in each point of the test
     fAlpha = 0.; // deg
-    fBeta = 0.;   // deg
-    fXIn = 0.;    // cm
-    fYIn = 0.;    // cm
-    fZIn = 0.;
-
-
+    fBeta = 0.;  // deg
+    fXIn = 0.;   // cm
+    fYIn = 0.;   // cm
+    fZIn = 0.;   // cm
 
 }
 
@@ -184,8 +182,6 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
 
     R3BGladFieldMap* gladField = (R3BGladFieldMap*)FairRunAna::Instance()->GetField();
 
-    
-
     Int_t histoBins = 2 * fHalfSizeTPC_X * fSizeOfVirtualPad;
     Int_t histoBins2 = 2 * fHalfSizeTPC_Z * fSizeOfVirtualPad;
     auto *histoID = new TH2D("histoID", "histoID", histoBins, 0, histoBins, histoBins2, 0, histoBins2);
@@ -275,27 +271,22 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     cout << "Field for (12.122176, 10, 156.11626) in R3B coordinates or (10, 10, -10) in field map coordinates: " << B_x
          << " " << B_y << " " << B_z << " " << endl;
 
-
-    // Parámetros alpha y beta que definen la recta así como el punto de incidencia de la recta
-
-	Double_t alpha = fAlpha;
-	Double_t beta = fBeta;
-	Double_t x_in = fXIn;
-	Double_t y_in = fYIn;
-	Double_t z_in = fZIn;
-	alpha *= 3.141593 / 180.;
-	beta *= 3.141593 / 180.;
+    // Express the angles in rad 
+	fAlpha *= 3.141593 / 180.;
+	fBeta *= 3.141593 / 180.;
 
 	for (Int_t r = 0; r < 20000; r++)
 	{
 
-	    Double_t xval = r / 100. * cos(beta) * sin(alpha);
- 	    Double_t zval = z_in + r / 100. * cos(beta) * cos(alpha);
-	    Double_t yval = y_in + r / 100. * sin(beta);
+        // Parametrize the straight line with beta and alpha angles
+	    Double_t xval = r / 100. * cos(fBeta) * sin(fAlpha);
+ 	    Double_t zval = fZIn + r / 100. * cos(fBeta) * cos(fAlpha);
+	    Double_t yval = fYIn + r / 100. * sin(fBeta);
 
-            if (yval > 29.4){std::cout << xval << yval << zval << " Y " << std::endl; break;}
-	    if (zval > 25.6){std::cout << xval << yval << zval<< " Z " << std::endl; break;}
-	    if (xval > 8.8){std::cout << xval << yval << zval << " X " <<std::endl; break;}
+        // Stop when the laser scapes the TPC
+        if (yval > 29.4){/*std::cout << xval << yval << zval << " Y "*/ << std::endl; break;}
+	    if (zval > 25.6){/*std::cout << xval << yval << zval<< " Z "*/ << std::endl; break;}
+	    if (xval > 8.8){/*std::cout << xval << yval << zval << " X "*/ <<std::endl; break;}
 
 	    ele_y_init = yval -fHalfSizeTPC_Y;
         ele_x_init =+ cos(-TargetAngle) * (xval) + sin(-TargetAngle) * (zval);
