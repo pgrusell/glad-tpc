@@ -40,10 +40,18 @@ R3BGTPCLangevinTest::R3BGTPCLangevinTest()
     fLongDiff = 0.00000216;          // [cm^2/ns] just initial value
     fFanoFactor = 2;                 // NOTUSED
     fHalfSizeTPC_X = 4.4;            //[cm] to be used with the output of create_tpc_geo_test.C
-    fHalfSizeTPC_Y = 14.7;            //
-    fHalfSizeTPC_Z = 12.8;           //
+    fHalfSizeTPC_Y = 14.7;            // 
+    fHalfSizeTPC_Z = 12.8;           // 
     fSizeOfVirtualPad = 5.;        // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
     fNumberOfGeneratedElectrons = 0; // Number of electrons to generate in each point of the test
+    fAlpha = 0.; // deg
+    fBeta = 0.;   // deg
+    fXIn = 0.;    // cm
+    fYIn = 0.;    // cm
+    fZIn = 0.;
+
+
+
 }
 
 R3BGTPCLangevinTest::~R3BGTPCLangevinTest()
@@ -142,6 +150,20 @@ void R3BGTPCLangevinTest::SetDriftParameters(Double_t ion,
     fFanoFactor = fanoFactor; // NOTUSED
 }
 
+void R3BGTPCLangevinTest::SetLaserParameters(Double_t alpha,
+                                             Double_t beta,
+                                             Double_t x_in,
+                                             Double_t y_in,
+                                             Double_t z_in)
+{
+    fAlpha = alpha; // deg
+    fBeta = beta;   // deg
+    fXIn = x_in;    // cm
+    fYIn = y_in;    // cm
+    fZIn = z_in;    // cm
+}
+
+
 void R3BGTPCLangevinTest::SetSizeOfVirtualPad(Double_t size)
 {
     fSizeOfVirtualPad = size; // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
@@ -160,24 +182,15 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     LOG(info) << "R3BGTPCLangevinTest: test";
     Int_t nPoints = fGTPCPoints->GetEntries();
 
-    // if(nPoints<2){
-    //  LOG(info) << "Not enough hits for digitization! (<2)";
-    //  return;
-    //}
-
-
+    R3BGladFieldMap* gladField = (R3BGladFieldMap*)FairRunAna::Instance()->GetField();
 
     
 
-    R3BGladFieldMap* gladField = (R3BGladFieldMap*)FairRunAna::Instance()->GetField();
-
     Int_t histoBins = 2 * fHalfSizeTPC_X * fSizeOfVirtualPad;
     Int_t histoBins2 = 2 * fHalfSizeTPC_Z * fSizeOfVirtualPad;
-
     auto *histoID = new TH2D("histoID", "histoID", histoBins, 0, histoBins, histoBins2, 0, histoBins2);
 
     R3BGTPCPoint* aPoint;
-    // R3BGTPCProjPoint* aProjPoint;
     Double_t projX, projZ, projTime;
     Double_t timeBeforeDrift = 0.;
     Bool_t virtualPadFound = kFALSE;
@@ -234,7 +247,6 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     Double_t TargetOffsetY = 0;
     Double_t TargetOffsetZ = 260;      // USING INSTEAD THE FIELD MAP DESPLACEMENT! MISMATCH
     Double_t TargetOffsetZ_FM = 263.4; // FIELD MAP DESPLACEMENT
-
     Double_t TargetAngle = 14. * 3.14159 / 180;
 
     B_x = 0.1 * gladField->GetBx(0, 0, 163.4); // Field components return in [kG], moved to [T]
@@ -263,37 +275,19 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
     cout << "Field for (12.122176, 10, 156.11626) in R3B coordinates or (10, 10, -10) in field map coordinates: " << B_x
          << " " << B_y << " " << B_z << " " << endl;
 
-    // CHECKING THE FIELD (COMMENT ME LATER)
-    /*B_x = 0.1 * gladField->GetBx(0.0,0.0,163.4);//Field components return in [kG], moved to [T]
-    B_y = 0.1 * gladField->GetBy(0.0,0.0,163.4);
-    B_z = 0.1 * gladField->GetBz(0.0,0.0,163.4);
-    cout << "Field for (25,50,240)" << B_x << " "  << B_y << " "  << B_z << " "  << endl;*/
 
+    // Parámetros alpha y beta que definen la recta así como el punto de incidencia de la recta
 
-
-    /* In this case, instead of a grid of points in the xz plane, we are going to follow a straight line parametrized by
-       by a r index.*/
-
-
-
-    //for (Int_t gridPoint_z = 0; gridPoint_z < 8; gridPoint_z++)
-    //{ // 39 points from 5 to 195 cm (200cm long TPC)
-        //for (Int_t gridPoint_x = 0; gridPoint_x < 8; gridPoint_x++)
-        //{ // 15 points from 5 to 75 cm (80cm wide TPC)
-
-	Double_t alpha = 11.67 * 3.141593 / 180.;
-	Double_t beta = 1.38 * 3.141593 / 180.;
-
-	Double_t x_in, y_in, z_in;
-	x_in = 0;
-	y_in = 24.312;
-	z_in = 6.98;
-
-//	x_in = 0.;
-//	z_in = 0.;
+	Double_t alpha = fAlpha;
+	Double_t beta = fBeta;
+	Double_t x_in = fXIn;
+	Double_t y_in = fYIn;
+	Double_t z_in = fZIn;
+	alpha *= 3.141593 / 180.;
+	beta *= 3.141593 / 180.;
 
 	for (Int_t r = 0; r < 20000; r++)
-	    {
+	{
 
 	    Double_t xval = r / 100. * cos(beta) * sin(alpha);
  	    Double_t zval = z_in + r / 100. * cos(beta) * cos(alpha);
@@ -303,192 +297,127 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
 	    if (zval > 25.6){std::cout << xval << yval << zval<< " Z " << std::endl; break;}
 	    if (xval > 8.8){std::cout << xval << yval << zval << " X " <<std::endl; break;}
 
-
 	    ele_y_init = yval -fHalfSizeTPC_Y;
-            ele_x_init =
-                +cos(-TargetAngle) * (xval) + sin(-TargetAngle) * (zval);
-            ele_z_init = (TargetOffsetZ_FM - fHalfSizeTPC_Z) - sin(-TargetAngle) * (xval) +
-                         cos(-TargetAngle) * (zval);
+        ele_x_init =+ cos(-TargetAngle) * (xval) + sin(-TargetAngle) * (zval);
+        ele_z_init = (TargetOffsetZ_FM - fHalfSizeTPC_Z) - sin(-TargetAngle) * (xval) + cos(-TargetAngle) * (zval);
 
-	    //ele_x_init = -fHalfSizeTPC_X + gridPoint_x * 10;
-            ///////////////ele_y_init = -fHalfSizeTPC_Z + gridPoint_z * 10;
+        // taken the driftDistance for the calculation of the sigmaLong and sigmaTrans
+        driftDistance = ele_y + fHalfSizeTPC_Y;
+        sigmaLongAtPadPlane = sqrt(driftDistance * 2 * fLongDiff / fDriftVelocity);
+        sigmaTransvAtPadPlane = sqrt(driftDistance * 2 * fTransDiff / fDriftVelocity);
 
-//            if (evtID == 0)
-//                ele_y_init = -fHalfSizeTPC_Y + 25.; // 5cm above the padplane
-//            else if (evtID == 1)
-//                ele_y_init = -fHalfSizeTPC_Y + 10.; // 10cm above the padplane
-//            else if (evtID == 2)
-//                ele_y_init =  - fHalfSizeTPC_Y + 15.; // 15cm above the padplane
-//            else if (evtID == 3)
-//                ele_y_init =  - fHalfSizeTPC_Y + 20.; // 20cm above the padplane
-//            else if (evtID == 4)
-//                ele_y_init =  - fHalfSizeTPC_Y + 25; // 25cm above the padplane
-//	    else if (evtID == 5)
-//		ele_y_init = - fHalfSizeTPC_Y + 30.; 
-//            else
-//            {
-//                LOG(info) << "Event ID larger than neccesary for the grid test.";
-//                return;
-//            }
+        for (Int_t ele = 0; ele < fNumberOfGeneratedElectrons; ele++)
+        {
+            ele_x = ele_x_init;
+            ele_y = ele_y_init;
+            ele_z = ele_z_init;
 
-            // CHECKING THE FIELD (COMMENT ME LATER)
-            /*B_x = 0.1 * gladField->GetBx(ele_x_init, ele_y_init, ele_z_init);//Field components return in [kG], moved
-            to [T] B_y = 0.1 * gladField->GetBy(ele_x_init, ele_y_init, ele_z_init); B_z = 0.1 *
-            gladField->GetBz(ele_x_init, ele_y_init, ele_z_init); cout << "Field for (" << ele_x_init << "," <<
-            ele_y_init << "," << ele_z_init << "),("<< - fHalfSizeTPC_X+gridPoint_x * 5 <<","<< ele_y_init<< "," <<
-            gridPoint_z * 5 <<")" << B_x << " "  << B_y << " "  << B_z << " "  << endl;
-           */
-            // taken the driftDistance for the calculation of the sigmaLong and sigmaTrans
-            driftDistance = ele_y + fHalfSizeTPC_Y;
-            sigmaLongAtPadPlane = sqrt(driftDistance * 2 * fLongDiff / fDriftVelocity);
-            sigmaTransvAtPadPlane = sqrt(driftDistance * 2 * fTransDiff / fDriftVelocity);
+            accDriftTime = timeBeforeDrift;
+            driftTimeStep = 100; // 100ns TODO set as variable or move to parameter container
 
-            // ele_x = ele_x_init; ele_y = ele_y_init; ele_z = ele_z_init;
-            for (Int_t ele = 0; ele < fNumberOfGeneratedElectrons; ele++)
-            {
-                ele_x = ele_x_init;
-                ele_y = ele_y_init;
-                ele_z = ele_z_init;
+            LOG(debug) << "R3BGTPCLangevinTest::Exec, INITIAL VALUES: timeBeforeDrift=" << accDriftTime << " [ns]"
+                        << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
 
-                // CHECK... COMMENT ME
-                /*cout << "Initial Pos: " << ele_x_init << "," << ele_y_init << "," << ele_z_init << "),("<< -
-                 * fHalfSizeTPC_X+gridPoint_x * 5 <<","<< ele_y_init<< "," << gridPoint_z * 5 <<")" << endl;
-                 */
-                accDriftTime = timeBeforeDrift;
-                driftTimeStep = 100; // 100ns TODO set as variable or move to parameter container
+            while (ele_y > -fHalfSizeTPC_Y)  // while not reaching the pad plane [cm]
+            {                                                      
+                B_x = 0.1 * gladField->GetBx(ele_x, ele_y, ele_z); // Field components return in [kG], moved to [T]
+                B_y = 0.1 * gladField->GetBy(ele_x, ele_y, ele_z);
+                B_z = 0.1 * gladField->GetBz(ele_x, ele_y, ele_z);
 
-                LOG(debug) << "R3BGTPCLangevinTest::Exec, INITIAL VALUES: timeBeforeDrift=" << accDriftTime << " [ns]"
-                           << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
+                moduleB = TMath::Sqrt(B_x * B_x + B_y * B_y + B_z * B_z); // in [T]
+                cteMod = 1 / (1 + mu * mu * moduleB * moduleB);           // SI
+                cteMult = mu * cteMod;                                    // SI
 
-                // cout <<  "R3BGTPCLangevinTest::Exec, INITIAL VALUES: timeBeforeDrift="<< accDriftTime << " [ns]"
-                //     << " ele_x=" << ele_x <<" ele_y=" << ele_y <<" ele_z=" << ele_z << " [cm]" << endl;
+                // assuming only vertical electric field in the next four lines
+                productEB = E_y * B_y; // E_x*B_x + E_y*B_y + E_z*B_z; SI
 
-                while (ele_y > -fHalfSizeTPC_Y)
-                {                                                      // while not reaching the pad plane [cm]
-                    B_x = 0.1 * gladField->GetBx(ele_x, ele_y, ele_z); // Field components return in [kG], moved to [T]
-                    B_y = 0.1 * gladField->GetBy(ele_x, ele_y, ele_z);
-                    B_z = 0.1 * gladField->GetBz(ele_x, ele_y, ele_z);
- 
+                vDrift_x = cteMult * (mu * (E_y * B_z) + mu * mu * productEB * B_x); // cte * (Ex + mu*(E_y*B_z-E_z*B_y) + mu*mu*productEB*B_x); SI
+                vDrift_y = cteMult * (E_y + mu * mu * productEB * B_y); // cte * (Ey + mu*(E_z*B_x-E_x*B_z) + mu*mu*productEB*B_y); SI
+                vDrift_z = cteMult * (mu * (-E_y * B_x) + mu * mu * productEB * B_z); // cte * (Ez + mu*(E_x*B_y-E_y*B_x) + mu*mu*productEB*B_z); SI
 
-                    // if(ele==0) cout << "Field for (" << ele_x << "," << ele_y << "," << ele_z << ")" << B_x << " " <<
-                    // B_y << " "  << B_z << " "  << endl;
+                LOG(debug) << "R3BGTPCLangevinTest::Exec, timeBeforeDrift=vDrift_x=" << vDrift_x 
+                << " vDrift_y=" << vDrift_y << " vDrift_z=" << vDrift_z << " [m/s]";
 
-                    moduleB = TMath::Sqrt(B_x * B_x + B_y * B_y + B_z * B_z); // in [T]
-                    cteMod = 1 / (1 + mu * mu * moduleB * moduleB);           // SI
-                    cteMult = mu * cteMod;                                    // SI
+                // adjusting the last step before the pad plane
+                if (ele_y - 1.E-7 * vDrift_y * driftTimeStep < -fHalfSizeTPC_Y)
+                    driftTimeStep = (ele_y + fHalfSizeTPC_Y) / (1.E-7 * vDrift_y); // vDrift back to [cm/ns]
 
-                    // assuming only vertical electric field in the next four lines
-                    productEB = E_y * B_y; // E_x*B_x + E_y*B_y + E_z*B_z; SI
+                // reducing sigmaTransv (see http://web.ift.uib.no/~lipniack/detectors/lecture5/detector5.pdf)
+                // as B~B_y and E=E_y, let's simplify and apply the reduction to the transversal coefficient without
+                // projections
+                sigmaTransvStep = sqrt(driftTimeStep * 2 * fTransDiff * cteMod); // should be reduced by the factor cteMod=cteMult/mu
+                sigmaLongStep = sqrt(driftTimeStep * 2 * fLongDiff); // should be the same scaled to the length of the step
+                ele_x = gRandom->Gaus(ele_x + 1.E-7* vDrift_x * driftTimeStep, sigmaTransvStep); // vDrift back to [cm/ns]
+                ele_y = gRandom->Gaus(ele_y - 1.E-7 * vDrift_y * driftTimeStep, sigmaLongStep);
+                ele_z = gRandom->Gaus(ele_z + 1.E-7 * vDrift_z * driftTimeStep, sigmaTransvStep);
+                accDriftTime = accDriftTime + driftTimeStep;
 
-                    vDrift_x = cteMult * (mu * (E_y * B_z) +
-                                          mu * mu * productEB *
-                                              B_x); // cte * (Ex + mu*(E_y*B_z-E_z*B_y) + mu*mu*productEB*B_x); SI
-                    vDrift_y = cteMult * (E_y + mu * mu * productEB *
-                                                    B_y); // cte * (Ey + mu*(E_z*B_x-E_x*B_z) + mu*mu*productEB*B_y); SI
-                    vDrift_z = cteMult * (mu * (-E_y * B_x) +
-                                          mu * mu * productEB *
-                                              B_z); // cte * (Ez + mu*(E_x*B_y-E_y*B_x) + mu*mu*productEB*B_z); SI
+                LOG(debug) << "R3BGTPCLangevinTest::Exec, accDriftTime=" << accDriftTime << " [ns]"
+                            << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
 
-                    LOG(debug) << "R3BGTPCLangevinTest::Exec, timeBeforeDrift=vDrift_x=" << vDrift_x
-                               << " vDrift_y=" << vDrift_y << " vDrift_z=" << vDrift_z << " [m/s]";
-
-                    // adjusting the last step before the pad plane
-                    if (ele_y - 1.E-7 * vDrift_y * driftTimeStep < -fHalfSizeTPC_Y)
-                        driftTimeStep = (ele_y + fHalfSizeTPC_Y) / (1.E-7 * vDrift_y); // vDrift back to [cm/ns]
-
-                    // reducing sigmaTransv (see http://web.ift.uib.no/~lipniack/detectors/lecture5/detector5.pdf)
-                    // as B~B_y and E=E_y, let's simplify and apply the reduction to the transversal coefficient without
-                    // projections
-                    sigmaTransvStep = sqrt(driftTimeStep * 2 * fTransDiff *
-                                           cteMod); // should be reduced by the factor cteMod=cteMult/mu
-                    sigmaLongStep =
-                        sqrt(driftTimeStep * 2 * fLongDiff); // should be the same scaled to the length of the step
-                    ele_x = gRandom->Gaus(ele_x + 1.E-7* vDrift_x * driftTimeStep,
-                                          sigmaTransvStep); // vDrift back to [cm/ns]
-                    ele_y = gRandom->Gaus(ele_y - 1.E-7 * vDrift_y * driftTimeStep, sigmaLongStep);
-                    ele_z = gRandom->Gaus(ele_z + 1.E-7 * vDrift_z * driftTimeStep, sigmaTransvStep);
-                    accDriftTime = accDriftTime + driftTimeStep;
-
-                    LOG(debug) << "R3BGTPCLangevinTest::Exec, accDriftTime=" << accDriftTime << " [ns]"
-                               << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
-                }
-                // cout << "R3BGTPCLangevinTest::Exec, accDriftTime="<< accDriftTime << " [ns]"
-                //     << " ele_x=" << ele_x <<" ele_y=" << ele_y <<" ele_z=" << ele_z << " [cm]" <<endl;
-
-                // projX = ele_x;
-                // projZ = ele_z;
-                projTime = accDriftTime;
-
-                // obtain padID for projX, projZ (simple algorithm)
-                // the algorithm assigns a pad number which depends on the XZ size of the chamber,
-                // according to the fSizeOfVirtualPad parameter: if it is 1, the pad size is cm^2
-                // and padID goes from 0 to 2*fHalfSizeTPC_X in the first row,
-                // from 2*fHalfSizeTPC_X to 4*fHalfSizeTPC_X in the second row, ...
-                // if fSizeOfVirtualPad=0.1, then padID goes from 0 to 20*fHalfSizeTPC_X,
-                // from 20*fHalfSizeTPC_X to 40*fHalfSizeTPC_X, ...
-                // Avoid first moving out of the virtual pad plane limits
-
-		Double_t offX = 5.8 - 8.6;
-		Double_t offZ = 272.2 - 271;
-
-		offX = 0.;
-		offZ = 0.;
-
-                projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) + offX;
-                projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) + offZ;
-
-
-		Double_t padX, padZ;
-		padX = histoBins * projX / 2. / fHalfSizeTPC_X;
-		padZ = histoBins2 * projZ / 2. / fHalfSizeTPC_Z;
-
-                // CHECK... COMMENT ME
-                /*cout << "Final Pos: " << ele_x<< "," << ele_y<< "," << ele_z << "),("<< projX <<","<< -fHalfSizeTPC_Y
-                 * << "," << projZ <<")" << endl;
-                 */
-                // if(projZ<TargetOffsetZ-fHalfSizeTPC_Z) projZ=TargetOffsetZ-fHalfSizeTPC_Z;
-                // if(projZ>TargetOffsetZ+fHalfSizeTPC_Z) projZ=TargetOffsetZ+fHalfSizeTPC_Z;
-                // if(projX<TargetOffsetX-fHalfSizeTPC_X) projX=TargetOffsetX-fHalfSizeTPC_X;
-                // if(projX>TargetOffsetX+fHalfSizeTPC_X) projX=TargetOffsetX+fHalfSizeTPC_X;
-
-                //Int_t padID = (2 * fHalfSizeTPC_X * fSizeOfVirtualPad) * (Int_t)((projZ)*fSizeOfVirtualPad) +
-                              //(Int_t)((projX - fHalfSizeTPC_X) * fSizeOfVirtualPad);
-
-
-		Int_t padID = histoID->Fill(padX, padZ);
-
-                // cout << "padID: " << padID << endl;
-
-                Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();
-                for (Int_t pp = 0; pp < nProjPoints; pp++)
-                {
-                    if (((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->GetVirtualPadID() == padID)
-                    {
-                        // already existing R3BGTPCProjPoint... add time and electron
-                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->AddCharge();
-                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->SetTimeDistr(projTime / 1000, 1); // micros
-                        virtualPadFound = kTRUE;
-                        break;
-                    }
-                }
-                if (!virtualPadFound)
-                {
-                    new ((*fGTPCProjPoint)[nProjPoints]) R3BGTPCProjPoint(padID,
-                                                                          projTime / 1000, // micros
-                                                                          1,
-                                                                          evtID,
-                                                                          PDGCode,
-                                                                          MotherId,
-                                                                          Vertex_x0,
-                                                                          Vertex_y0,
-                                                                          Vertex_z0,
-                                                                          Vertex_px0,
-                                                                          Vertex_py0,
-                                                                          Vertex_pz0);
-                }
-                virtualPadFound = kFALSE;
             }
+
+            projTime = accDriftTime;
+
+            // obtain padID for projX, projZ (simple algorithm)
+            // 1) Fill an histogram with histoBins (X-axis) and histoBins1 (Y-axis)
+            // 2) Get the ID of the bin filled in each event
+            // 3) This ID can be used to reconstruct the histogram by inverting the process
+
+
+            // TODO: Estudiar el offset entre el padplane y la tpc
+		    Double_t offX = 5.8 - 8.6;
+		    Double_t offZ = 272.2 - 271;
+
+		    offX = 0.;
+		    offZ = 0.;
+
+            projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) + offX;
+            projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) + offZ;
+
+		    Double_t padX, padZ;
+		    padX = histoBins * projX / 2. / fHalfSizeTPC_X;
+		    padZ = histoBins2 * projZ / 2. / fHalfSizeTPC_Z;
+
+		    Int_t padID = histoID->Fill(padX, padZ);
+
+            // cout << "padID: " << padID << endl;
+
+            Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();
+            for (Int_t pp = 0; pp < nProjPoints; pp++)
+            {
+                if (((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->GetVirtualPadID() == padID)
+                {
+                    // already existing R3BGTPCProjPoint... add time and electron
+                    ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->AddCharge();
+                    ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->SetTimeDistr(projTime / 1000, 1); // micros
+                    virtualPadFound = kTRUE;
+                    break;
+                }
+
+            }
+
+            if (!virtualPadFound)
+            {
+                new ((*fGTPCProjPoint)[nProjPoints]) R3BGTPCProjPoint(padID,
+                                                                        projTime / 1000, // micros
+                                                                        1,
+                                                                        evtID,
+                                                                        PDGCode,
+                                                                        MotherId,
+                                                                        Vertex_x0,
+                                                                        Vertex_y0,
+                                                                        Vertex_z0,
+                                                                        Vertex_px0,
+                                                                        Vertex_py0,
+                                                                        Vertex_pz0);
+            }
+
+            virtualPadFound = kFALSE;
+
         }
+
+    }
     
     LOG(info) << "R3BGTPCLangevinTest: produced " << fGTPCProjPoint->GetEntries() << " projPoints";
 }

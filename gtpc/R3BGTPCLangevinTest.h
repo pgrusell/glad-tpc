@@ -49,7 +49,7 @@ class R3BGTPCLangevinTest : public FairTask
 
     /** Set parameters -- To be removed when parameter containers are ready **/
     void SetDriftParameters(Double_t ion, Double_t driftv, Double_t tDiff, Double_t lDiff, Double_t fanoFactor);
-
+    void SetLaserParameters(Double_t alpha, Double_t beta, Double_t x_in, Double_t y_in, Double_t z_in);
     void SetSizeOfVirtualPad(Double_t size);
     void SetNumberOfGeneratedElectrons(Double_t ele);
 
@@ -84,6 +84,11 @@ class R3BGTPCLangevinTest : public FairTask
     Double_t fHalfSizeTPC_Y;    //!< Half size Y of the TPC drift volume [cm]
     Double_t fHalfSizeTPC_Z;    //!< Half size Z of the TPC drift volume [cm]
     Double_t fSizeOfVirtualPad; //!< Number of virtual pad division per cm (default 1)
+    Double_t fAlpha;
+    Double_t fBeta;
+    Double_t fXIn;
+    Double_t fYIn;
+    Double_t fZIn;
 
     Int_t fNumberOfGeneratedElectrons; //!< Number of electrons to generate in each point of the test
 

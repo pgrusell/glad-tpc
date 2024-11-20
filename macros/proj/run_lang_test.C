@@ -24,6 +24,8 @@ void run_lang_test()
 
     R3BGTPCLangevinTest* lantest = new R3BGTPCLangevinTest();
     lantest->SetDriftParameters(15.e-9, 0.0048, 0.00000216, 0.00000216, 2);
+    //lantest->SetLaserParameters(9.71, 1.54, 0., 16.204, 5.76);
+    lantest->SetLaserParameters(11.67, 1.36, 0., 24.312, 6.98);
     lantest->SetSizeOfVirtualPad(5); // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
     lantest->SetNumberOfGeneratedElectrons(10000);
 
