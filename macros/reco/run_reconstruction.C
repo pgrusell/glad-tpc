@@ -24,8 +24,21 @@ void run_reconstruction(TString fileName = "lang.root")
 
     // -----   Create analysis run   ----------------------------------------
     FairRunAna* fRun = new FairRunAna();
+
+    FairField *magField = NULL;
+    magField = new R3BGladFieldMap("R3BGladMap");
+    ((R3BGladFieldMap*) (magField))->SetScale(-1.);
+    ((R3BGladFieldMap*) (magField))->Init();
+    fRun->SetField(magField);
+
+
+
     fRun->SetSource(new FairFileSource(inFile));
     fRun->SetOutputFile(outFile.Data());
+
+
+    
+
 
     // -----   Runtime database   ---------------------------------------------
     FairRuntimeDb* rtdb = fRun->GetRuntimeDb();

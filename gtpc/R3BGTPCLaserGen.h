@@ -10,12 +10,13 @@
  * granted to it by virtue of its status as an Intergovernmental Organization *
  * or submit itself to any jurisdiction.                                      *
  ******************************************************************************/
-/**  R3BGTPCLangevinTest.h
+/**  R3BGTPCLaserGen.h
  * Projects the electrons derived from the energy loss in the gas into
  * a virtual pad plane of variable size pads, including time information
  **/
-#ifndef R3BGTPCLANGEVINTEST_H
-#define R3BGTPCLANGEVINTEST_H
+
+#ifndef R3BGTPCLASERGEN_H
+#define R3BGTPCLASERGEN_H
 
 #include "FairTask.h"
 #include "R3BGTPCElecPar.h"
@@ -25,6 +26,7 @@
 #include "R3BGTPCProjPoint.h"
 #include "TClonesArray.h"
 #include "TVirtualMC.h"
+#include "R3BGTPCCalData.h"
 
 /**
  * GTPC drift calculation using Langevin equation task
@@ -35,21 +37,21 @@
  *   Output: Branch GTPCProjPoint = TClonesArray("R3BGTPCProjPoint")
  */
 
-class R3BGTPCLangevinTest : public FairTask
+class R3BGTPCLaserGen : public FairTask
 {
   public:
     /** Default constructor **/
-    R3BGTPCLangevinTest();
+    R3BGTPCLaserGen();
 
     /** Destructor **/
-    ~R3BGTPCLangevinTest();
+    ~R3BGTPCLaserGen();
 
     /** Virtual method Exec **/
     void Exec(Option_t*);
 
     /** Set parameters -- To be removed when parameter containers are ready **/
     void SetDriftParameters(Double_t ion, Double_t driftv, Double_t tDiff, Double_t lDiff, Double_t fanoFactor);
-    void SetLaserParameters(Double_t alpha, Double_t beta, Double_t x_in, Double_t y_in, Double_t z_in, Double_t maxLength, Double_t pointDistance);
+    void SetLaserParameters(Double_t alpha, Double_t beta, Double_t x_in, Double_t y_in, Double_t z_in, Double_t maxLength);
     void SetSizeOfVirtualPad(Double_t size);
     void SetNumberOfGeneratedElectrons(Double_t ele);
 
@@ -68,6 +70,7 @@ class R3BGTPCLangevinTest : public FairTask
 
     TClonesArray* fGTPCPoints;
     TClonesArray* fGTPCProjPoint;
+    TClonesArray* fGTPCCalData;
     // MCTrack- vertex information
     TClonesArray* MCTrackCA;
 
@@ -90,15 +93,15 @@ class R3BGTPCLangevinTest : public FairTask
     Double_t fYIn;
     Double_t fZIn;
     Double_t fMaxLength;
-    Double_t fPointDistance;
 
     Int_t fNumberOfGeneratedElectrons; //!< Number of electrons to generate in each point of the test
 
     R3BGTPCGeoPar* fGTPCGeoPar;   //!< Geometry parameter container
     R3BGTPCGasPar* fGTPCGasPar;   //!< Gas parameter container
     R3BGTPCElecPar* fGTPCElecPar; //!< Electronic parameter container
-
-    ClassDef(R3BGTPCLangevinTest, 1)
+ 
+    ClassDef(R3BGTPCLaserGen, 1)    
 };
 
-#endif // R3BGTPCLANGEVINTEST_H
+#endif // R3BGTPCLASERGEN_H
+

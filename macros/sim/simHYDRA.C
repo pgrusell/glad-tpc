@@ -14,8 +14,7 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
   Bool_t storeTrajectories = kTRUE; //  To store particle trajectories
   Bool_t magnet = kTRUE;            //	Switch on/off the B field
   Bool_t constBfield = kTRUE;       //	Constant magnetic field
-  Bool_t printGLAD =
-      kFALSE; //	print the inner glad vessel and the HYDRA detector
+  Bool_t printGLAD = kFALSE; //	print the inner glad vessel and the HYDRA detector
   Float_t fieldScale = -1.;
 
   TString transport = "TGeant4";
@@ -83,20 +82,40 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
   // NB: <D.B>
   // If the Global Position of the Magnet is changed
   // the Field Map has to be transformed accordingly
-  R3BGladFieldMap *magField = new R3BGladFieldMap("R3BGladMap");
-  magField->SetScale(fieldScale);
 
+  /*
+  R3BGladFieldMap *magField = new R3BGladFieldMap("R3BGladMap");
+  magField->SetScale(-1.);
+  run->SetField(magField);
+*/
+
+
+   
+  R3BGladFieldMap *magField = new R3BGladFieldMap("R3BGladMap");
+  magField->SetScale(-1.);
+  //magField->Init();
+
+
+  
   // Constant Magnetic field
-  FairConstField *constField = new FairConstField();
-  double B_y = 20.; //[kG]
-  constField->SetField(0., B_y, 0.);
-  constField->SetFieldRegion(-200.0, // x_min
+  //FairConstField *constField = new FairConstField();
+
+
+  
+  R3BFieldConst *constField = new R3BFieldConst();
+
+  double B_y = 21.; //[kG]
+  (constField)->SetField(0., B_y, 0.);
+  (constField)->SetFieldRegion(-200.0, // x_min
                              200.0,  // x_max
                              -100.0, // y_min
                              100.0,  // y_max
                              -150.0, // z_min
                              450.0); // z_max
 
+  run->SetField(constField);
+  
+  
   if (magnet) {
     if (constBfield)
       run->SetField(constField);
@@ -104,6 +123,9 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
       run->SetField(magField);
   } else
     run->SetField(NULL);
+
+  
+
 
   // -----   Create PrimaryGenerator   --------------------------------------
   FairPrimaryGenerator *primGen = new FairPrimaryGenerator();
@@ -142,15 +164,25 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
   TVirtualMC::GetMC()->SetMaxNStep(nSteps);
 
   // -----   Runtime database   ---------------------------------------------
+  
   R3BFieldPar *fieldPar = (R3BFieldPar *)rtdb->getContainer("R3BFieldPar");
-  //if (NULL != magField) {
-    //if (constBfield)
-      //fieldPar->SetParameters(constField);
-    //else
-      //fieldPar->SetParameters(magField);
+  //fieldPar->SetParameters(constField);
+  //fieldPar->setChanged();
 
-    //fieldPar->setChanged();
-  //}
+
+  /**
+  if (NULL != magField) {
+    if (constBfield)
+      fieldPar->SetParameters(constField);
+    else
+      fieldPar->SetParameters(magField);
+
+    fieldPar->setChanged();
+  }
+  */
+ 
+
+
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(parFile.Data());
@@ -168,6 +200,7 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
   Double_t rtime = timer.RealTime();
   Double_t ctime = timer.CpuTime();
   cout << endl << endl;
+  std::cout << "Const field    " << constField->GetBx(0,0,0) << constField->GetBy(0,0,0) << constField->GetBz(0,0,0) << std::endl;
   cout << "Macro finished succesfully." << endl;
   cout << "Output file is " << outFile << endl;
   cout << "Parameter file is " << parFile << endl;

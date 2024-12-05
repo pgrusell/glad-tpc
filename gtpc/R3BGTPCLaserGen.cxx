@@ -10,11 +10,12 @@
  * granted to it by virtue of its status as an Intergovernmental Organization *
  * or submit itself to any jurisdiction.                                      *
  ******************************************************************************/
-#include "R3BGTPCLangevinTest.h"
+#include "R3BGTPCLaserGen.h"
 #include "R3BMCTrack.h"
 
 #include "TClonesArray.h"
 #include "TMath.h"
+#include "TRandom3.h"
 #include "TVirtualMC.h"
 #include "TVirtualMCStack.h"
 
@@ -27,11 +28,15 @@
 #include <TH2D.h>
 using namespace std;
 
-R3BGTPCLangevinTest::R3BGTPCLangevinTest()
-    : FairTask("R3BGTPCLangevinTest")
-    , fGTPCGeoPar(NULL)
-    , fGTPCGasPar(NULL)
-    , fGTPCElecPar(NULL)
+R3BGTPCLaserGen::R3BGTPCLaserGen()
+    : FairTask("R3BGTPCLaserGen")
+    , fGTPCGeoPar(nullptr)
+    , fGTPCGasPar(nullptr)
+    , fGTPCElecPar(nullptr)
+    , fGTPCPoints(nullptr)
+    , fGTPCProjPoint(nullptr)
+    , fGTPCCalData(new TClonesArray("R3BGTPCCalData"))
+    , MCTrackCA(nullptr)
 {
     // ALL UNITS IN cm, ns, V/cm, Tesla and GeV
     fEIonization = 15.e-9;           // [GeV] NOTUSED
@@ -50,63 +55,64 @@ R3BGTPCLangevinTest::R3BGTPCLangevinTest()
     fYIn = 0.;   // cm
     fZIn = 0.;   // cm
     fMaxLength = 0.;
-    fPointDistance = 0.;
+    //fPointDistance = 0.;
 
 }
 
-R3BGTPCLangevinTest::~R3BGTPCLangevinTest()
+R3BGTPCLaserGen::~R3BGTPCLaserGen()
 {
     fGTPCPoints->Clear();
     fGTPCProjPoint->Clear();
+    fGTPCCalData->Clear();
     MCTrackCA->Clear();
 }
 
-void R3BGTPCLangevinTest::SetParContainers()
+void R3BGTPCLaserGen::SetParContainers()
 {
     FairRunAna* run = FairRunAna::Instance();
     if (!run)
     {
-        LOG(fatal) << "R3BGTPCLangevinTest::SetParContainers: No analysis run";
+        LOG(fatal) << "R3BGTPCLaserGen::SetParContainers: No analysis run";
         return;
     }
     FairRuntimeDb* rtdb = run->GetRuntimeDb();
     if (!rtdb)
     {
-        LOG(fatal) << "R3BGTPCLangevinTest::SetParContainers: No runtime database";
+        LOG(fatal) << "R3BGTPCLaserGen::SetParContainers: No runtime database";
         return;
     }
     fGTPCGeoPar = (R3BGTPCGeoPar*)rtdb->getContainer("GTPCGeoPar");
     if (!fGTPCGeoPar)
     {
-        LOG(fatal) << "R3BGTPCLangevinTest::SetParContainers: No R3BGTPCGeoPar";
+        LOG(fatal) << "R3BGTPCLaserGen::SetParContainers: No R3BGTPCGeoPar";
         return;
     }
     fGTPCGasPar = (R3BGTPCGasPar*)rtdb->getContainer("GTPCGasPar");
     if (!fGTPCGasPar)
     {
-        LOG(fatal) << "R3BGTPCLangevinTest::SetParContainers: No R3BGTPCGasPar";
+        LOG(fatal) << "R3BGTPCLaserGen::SetParContainers: No R3BGTPCGasPar";
         return;
     }
     fGTPCElecPar = (R3BGTPCElecPar*)rtdb->getContainer("GTPCElecPar");
     if (!fGTPCElecPar)
     {
-        LOG(fatal) << "R3BGTPCLangevinTest::SetParContainers: No R3BGTPCElecPar";
+        LOG(fatal) << "R3BGTPCLaserGen::SetParContainers: No R3BGTPCElecPar";
         return;
     }
 }
 
-InitStatus R3BGTPCLangevinTest::Init()
+InitStatus R3BGTPCLaserGen::Init()
 {
     FairRootManager* ioman = FairRootManager::Instance();
     if (!ioman)
     {
-        LOG(fatal) << "R3BGTPCLangevinTest::Init: No FairRootManager";
+        LOG(fatal) << "R3BGTPCLaserGen::Init: No FairRootManager";
         return kFATAL;
     }
     // Input: TClonesArray of R3BGTPCPoints
     if ((TClonesArray*)ioman->GetObject("GTPCPoint") == nullptr)
     {
-        LOG(fatal) << "R3BGTPCLangevinTest::Init No GTPCPoint!";
+        LOG(fatal) << "R3BGTPCLaserGen::Init No GTPCPoint!";
         return kFATAL;
     }
     fGTPCPoints = (TClonesArray*)ioman->GetObject("GTPCPoint");
@@ -117,9 +123,20 @@ InitStatus R3BGTPCLangevinTest::Init()
         return kFATAL;
     }
     MCTrackCA = (TClonesArray*)ioman->GetObject("MCTrack");
-    // Output: TClonesArray of R3BGTPCProjPoint
-    fGTPCProjPoint = new TClonesArray("R3BGTPCProjPoint");
-    ioman->Register("GTPCProjPoint", GetName(), fGTPCProjPoint, kTRUE);
+
+    Int_t outputMode = 0;
+
+
+    //if (outputMode == 0)
+    { // Output: TClonesArray of R3BGTPCCalData
+        fGTPCCalData = new TClonesArray("R3BGTPCCalData");
+        ioman->Register("GTPCCalData", GetName(), fGTPCCalData, kTRUE);
+    }
+    //else if (outputMode == 1)
+    { // Output: TClonesArray of R3BGTPCProjPoint
+        fGTPCProjPoint = new TClonesArray("R3BGTPCProjPoint");
+        ioman->Register("GTPCProjPoint", GetName(), fGTPCProjPoint, kTRUE);
+    }
 
     /*   //PREPARE PROPER PARAMETER CONTAINERS FOR DRIFT PARAMETERS
          fEIonize  = fPar->GetEIonize()/1000000000; // [GeV]
@@ -131,13 +148,13 @@ InitStatus R3BGTPCLangevinTest::Init()
     return kSUCCESS;
 }
 
-InitStatus R3BGTPCLangevinTest::ReInit()
+InitStatus R3BGTPCLaserGen::ReInit()
 {
     SetParContainers();
     return kSUCCESS;
 }
 
-void R3BGTPCLangevinTest::SetDriftParameters(Double_t ion,
+void R3BGTPCLaserGen::SetDriftParameters(Double_t ion,
                                              Double_t driftv,
                                              Double_t tDiff,
                                              Double_t lDiff,
@@ -150,13 +167,12 @@ void R3BGTPCLangevinTest::SetDriftParameters(Double_t ion,
     fFanoFactor = fanoFactor; // NOTUSED
 }
 
-void R3BGTPCLangevinTest::SetLaserParameters(Double_t alpha,
+void R3BGTPCLaserGen::SetLaserParameters(Double_t alpha,
                                              Double_t beta,
                                              Double_t x_in,
                                              Double_t y_in,
                                              Double_t z_in,
-                                             Double_t maxLength,
-                                             Double_t pointDistance)
+                                             Double_t maxLength)
 {
     fAlpha = alpha; // deg
     fBeta = beta;   // deg
@@ -164,26 +180,27 @@ void R3BGTPCLangevinTest::SetLaserParameters(Double_t alpha,
     fYIn = y_in;    // cm
     fZIn = z_in;    // cm
     fMaxLength = maxLength; // cm
-    fPointDistance = pointDistance; // cm
+    //fPointDistance = pointDistance; // cm
 }
 
 
-void R3BGTPCLangevinTest::SetSizeOfVirtualPad(Double_t size)
+void R3BGTPCLaserGen::SetSizeOfVirtualPad(Double_t size)
 {
     fSizeOfVirtualPad = size; // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
 }
 
-void R3BGTPCLangevinTest::SetNumberOfGeneratedElectrons(Double_t ele)
+void R3BGTPCLaserGen::SetNumberOfGeneratedElectrons(Double_t ele)
 {
     fNumberOfGeneratedElectrons = ele; // Number of electrons to generate in each point of the test
 }
 
-void R3BGTPCLangevinTest::Exec(Option_t*)
+void R3BGTPCLaserGen::Exec(Option_t*)
 {
 
     fGTPCProjPoint->Clear("C");
+    fGTPCCalData->Clear("C");
 
-    LOG(info) << "R3BGTPCLangevinTest: test";
+    LOG(info) << "R3BGTPCLaserGen: test";
     Int_t nPoints = fGTPCPoints->GetEntries();
 
     R3BGladFieldMap* gladField = (R3BGladFieldMap*)FairRunAna::Instance()->GetField();
@@ -286,18 +303,44 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
 	fAlpha *= TMath::Pi() / 180.;
 	fBeta *= TMath::Pi() / 180.;
 
-	for (Double_t r = 0; r < fMaxLength; r+=fPointDistance)
+    // Calculate the radius where the laser scapes the TPC
+    Double_t rX = 2 * fHalfSizeTPC_X / cos(fBeta) / sin(fAlpha);
+    Double_t rY, rZ;
+    
+    if (fAlpha>0) // The laser only can scape through the top
+    {
+        rY = (2 * fHalfSizeTPC_Y - fYIn) / sin(fBeta);
+    }
+    else // The laser only can scape through the bottom
+    {
+        rY = (fYIn) / sin(fBeta);
+    }
+
+    
+    if ((fBeta < TMath::Pi() / 2) && (fBeta > 0.))
+    {
+        rZ = (2 * fHalfSizeTPC_Z - fZIn) / cos(fBeta) / cos(fAlpha);
+    }
+    else
+    {
+        rZ = (fZIn) / cos(fBeta) / cos(fAlpha);
+    }
+
+    Double_t rads[3] = {rX, rY, rZ}; 
+    Double_t rMin = TMath::MinElement(3, rads);
+    
+    TRandom3 rndGen;
+    for (Int_t k = 0; k < fMaxLength; k++)
 	{
+
+        Double_t r = rndGen.Uniform(0, rMin);
+        std::cout << r << std::endl;
+
 
         // Parametrize the straight line with beta and alpha angles
 	    Double_t xval = r * cos(fBeta) * sin(fAlpha);
  	    Double_t zval = fZIn + r * cos(fBeta) * cos(fAlpha);
 	    Double_t yval = fYIn + r * sin(fBeta);
-
-        // Stop when the laser scapes the TPC
-        if (TMath::Abs(yval) > 2*fHalfSizeTPC_Y){break;}
-	    if (TMath::Abs(zval) > 2*fHalfSizeTPC_Z){break;}
-	    if (TMath::Abs(xval) > 2*fHalfSizeTPC_X){break;}
 
 	    ele_y_init = yval -fHalfSizeTPC_Y;
         ele_x_init =+ cos(-TargetAngle) * (xval) + sin(-TargetAngle) * (zval);
@@ -317,12 +360,12 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
             accDriftTime = timeBeforeDrift;
             driftTimeStep = 100; // 100ns TODO set as variable or move to parameter container
 
-            LOG(debug) << "R3BGTPCLangevinTest::Exec, INITIAL VALUES: timeBeforeDrift=" << accDriftTime << " [ns]"
+            LOG(debug) << "R3BGTPCLaserGen::Exec, INITIAL VALUES: timeBeforeDrift=" << accDriftTime << " [ns]"
                         << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
 
 
-            std::cout << "Punto" << " " << ele_x << " " << ele_y << " " << ele_z << std::endl;
-            std::cout << "Campo: " << B_x << B_y << B_z << std::endl;
+            //std::cout << "Punto" << " " << ele_x << " " << ele_y << " " << ele_z << std::endl;
+            //std::cout << "Campo: " << B_x << B_y << B_z << std::endl;
 
             while (ele_y > -fHalfSizeTPC_Y)  // while not reaching the pad plane [cm]
             {                                                      
@@ -343,7 +386,7 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                 vDrift_y = cteMult * (E_y + mu * mu * productEB * B_y); // cte * (Ey + mu*(E_z*B_x-E_x*B_z) + mu*mu*productEB*B_y); SI
                 vDrift_z = cteMult * (mu * (-E_y * B_x) + mu * mu * productEB * B_z); // cte * (Ez + mu*(E_x*B_y-E_y*B_x) + mu*mu*productEB*B_z); SI
 
-                LOG(debug) << "R3BGTPCLangevinTest::Exec, timeBeforeDrift=vDrift_x=" << vDrift_x 
+                LOG(debug) << "R3BGTPCLaserGen::Exec, timeBeforeDrift=vDrift_x=" << vDrift_x 
                 << " vDrift_y=" << vDrift_y << " vDrift_z=" << vDrift_z << " [m/s]";
 
                 // adjusting the last step before the pad plane
@@ -360,7 +403,7 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
                 ele_z = gRandom->Gaus(ele_z + 1.E-7 * vDrift_z * driftTimeStep, sigmaTransvStep);
                 accDriftTime = accDriftTime + driftTimeStep;
 
-                LOG(debug) << "R3BGTPCLangevinTest::Exec, accDriftTime=" << accDriftTime << " [ns]"
+                LOG(debug) << "R3BGTPCLaserGen::Exec, accDriftTime=" << accDriftTime << " [ns]"
                             << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
 
             }
@@ -381,6 +424,8 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
 		    Int_t padID = histoID->Fill(padX, padZ);
 
             // cout << "padID: " << padID << endl;
+
+            /*
 
             Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();
             for (Int_t pp = 0; pp < nProjPoints; pp++)
@@ -414,13 +459,86 @@ void R3BGTPCLangevinTest::Exec(Option_t*)
 
             virtualPadFound = kFALSE;
 
+            */
+
+           Double_t fTimeBinSize = 1000;
+           Int_t outputMode = 1;
+
+        
+           if (outputMode == 0)
+            { // Output: TClonesArray of R3BGTPCCalData
+                Int_t nCalData = fGTPCCalData->GetEntriesFast();
+                for (Int_t pp = 0; pp < nCalData; pp++)
+                {
+                    if (((R3BGTPCCalData*)fGTPCCalData->At(pp))->GetPadId() == padID)
+                    {
+                        // already existing R3BGTPCCalData... add time and electron
+                        projTime = projTime / fTimeBinSize; // moving from ns to binsize
+                        if (projTime < 0)
+                            projTime = 0; // Fills (first) underflow bin
+                        else if (projTime > 511)
+                            projTime = 511; // Fills (last) overflow bin
+                        ((R3BGTPCCalData*)fGTPCCalData->At(pp))->SetADC(projTime);
+                        virtualPadFound = kTRUE;
+                        break;
+                    }
+
+                }
+                if (!virtualPadFound)
+                {
+                    std::vector<UShort_t> adc(512, 0);
+                    projTime = projTime / fTimeBinSize; // moving from ns to binsize
+                    if (projTime < 0)
+                        projTime = 0; // Fills (first) underflow bin
+                    else if (projTime > 511)
+                        projTime = 511; // Fills (last) overflow bin
+                    adc.at(projTime)++;
+                    new ((*fGTPCCalData)[nCalData]) R3BGTPCCalData(padID, adc);
+                }
+                virtualPadFound = kFALSE;
+                
+            }
+            else if (outputMode == 1)
+            { // Output: TClonesArray of R3BGTPCProjPoint
+                Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();
+                for (Int_t pp = 0; pp < nProjPoints; pp++)
+                {
+                    if (((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->GetVirtualPadID() == padID)
+                    {
+                        // already existing R3BGTPCProjPoint... add time and electron
+                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->AddCharge();
+                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))
+                            ->SetTimeDistr(projTime / fTimeBinSize, 1); // micros
+                        virtualPadFound = kTRUE;
+                        break;
+                    }
+                }
+                if (!virtualPadFound)
+                {
+                    new ((*fGTPCProjPoint)[nProjPoints]) R3BGTPCProjPoint(padID,
+                                                                            projTime / fTimeBinSize, // micros
+                                                                            1,
+                                                                            evtID,
+                                                                            PDGCode,
+                                                                            MotherId,
+                                                                            Vertex_x0,
+                                                                            Vertex_y0,
+                                                                            Vertex_z0,
+                                                                            Vertex_px0,
+                                                                            Vertex_py0,
+                                                                            Vertex_pz0);
+                }
+                virtualPadFound = kFALSE;
+            }
+            
+
         }
 
     }
     
-    LOG(info) << "R3BGTPCLangevinTest: produced " << fGTPCProjPoint->GetEntries() << " projPoints";
+    //LOG(info) << "R3BGTPCLaserGen: produced " << fGTPCProjPoint->GetEntries() << " projPoints";
 }
 
-void R3BGTPCLangevinTest::Finish() {}
+void R3BGTPCLaserGen::Finish() {}
 
-ClassImp(R3BGTPCLangevinTest)
+ClassImp(R3BGTPCLaserGen)

@@ -1,6 +1,6 @@
 {
     gStyle->SetOptStat(0);
-    gStyle->SetPalette(kBlackBody);
+    //gStyle->SetPalette(kBlackBody);
     c1A->Draw();
     DeviationX->SetMaximum(1000);
     DeviationX->SetMinimum(-1000);

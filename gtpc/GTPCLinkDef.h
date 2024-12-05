@@ -25,6 +25,7 @@
 #pragma link C++ class R3BGTPCProjector+;
 #pragma link C++ class R3BGTPCLangevin+;
 #pragma link C++ class R3BGTPCLangevinTest+;
+#pragma link C++ class R3BGTPCLaserGen+;
 
 #pragma link C++ class R3BGTPCGeoPar+;
 #pragma link C++ class R3BGTPCGasPar+;
