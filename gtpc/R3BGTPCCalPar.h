@@ -23,48 +23,47 @@
 
 class FairParamList;
 
-class R3BGTPCCalPar : public FairParGenericSet
-{
+class R3BGTPCCalPar : public FairParGenericSet {
 
-  public:
-    /** Standard constructor **/
-    R3BGTPCCalPar(const char* name = "GTPCCalPar",
-                  const char* title = "GTPC Cal Parameters",
-                  const char* context = "GTPCCalParContext");
+public:
+  /** Standard constructor **/
+  R3BGTPCCalPar(const char *name = "GTPCCalPar",
+                const char *title = "GTPC Cal Parameters",
+                const char *context = "GTPCCalParContext");
 
-    /** Destructor **/
-    virtual ~R3BGTPCCalPar();
+  /** Destructor **/
+  virtual ~R3BGTPCCalPar();
 
-    /** Method to reset all parameters **/
-    virtual void clear();
+  /** Method to reset all parameters **/
+  virtual void clear();
 
-    /** Method to store all parameters using FairRuntimeDB **/
-    virtual void putParams(FairParamList* list);
+  /** Method to store all parameters using FairRuntimeDB **/
+  virtual void putParams(FairParamList *list);
 
-    /** Method to retrieve all parameters using FairRuntimeDB**/
-    Bool_t getParams(FairParamList* list);
+  /** Method to retrieve all parameters using FairRuntimeDB**/
+  Bool_t getParams(FairParamList *list);
 
-    /** Method to print values of parameters to the standard output **/
-    virtual void print();
-    void printParams();
+  /** Method to print values of parameters to the standard output **/
+  virtual void print();
+  void printParams();
 
-    /** Accessor functions **/
-    const Double_t GetNumParams() { return fNumParams; }
-    TArrayF* GetCalParams() { return fCalParams; }
+  /** Accessor functions **/
+  const Double_t GetNumParams() { return fNumParams; }
+  TArrayF *GetCalParams() { return fCalParams; }
 
-    void SetNumParams(Int_t number) { fNumParams = number; }
-    void SetCalParams(Float_t cc, Int_t ii) { fCalParams->AddAt(cc, ii); }
+  void SetNumParams(Int_t number) { fNumParams = number; }
+  void SetCalParams(Float_t cc, Int_t ii) { fCalParams->AddAt(cc, ii); }
 
-    /** Create more Methods if you need them! **/
+  /** Create more Methods if you need them! **/
 
-  private:
-    TArrayF* fCalParams; /*< Calibration Parameters>*/
-    Int_t fNumParams;    /*< number of params>*/
+private:
+  TArrayF *fCalParams; /*< Calibration Parameters>*/
+  Int_t fNumParams;    /*< number of params>*/
 
-    const R3BGTPCCalPar& operator=(const R3BGTPCCalPar&);
-    R3BGTPCCalPar(const R3BGTPCCalPar&);
+  const R3BGTPCCalPar &operator=(const R3BGTPCCalPar &);
+  R3BGTPCCalPar(const R3BGTPCCalPar &);
 
-    ClassDef(R3BGTPCCalPar, 1);
+  ClassDef(R3BGTPCCalPar, 1);
 };
 
 #endif /* R3BGTPCCalPAR_H */

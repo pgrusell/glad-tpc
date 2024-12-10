@@ -13,16 +13,9 @@
 
 #include "R3BGTPCCalData.h"
 
-R3BGTPCCalData::R3BGTPCCalData()
-    : fPadId(0)
-    , fADC(0)
-{
-}
+R3BGTPCCalData::R3BGTPCCalData() : fPadId(0), fADC(0) {}
 
 R3BGTPCCalData::R3BGTPCCalData(UShort_t padId, std::vector<UShort_t> adc)
-    : fPadId(padId)
-    , fADC(adc)
-{
-}
+    : fPadId(padId), fADC(adc) {}
 
 ClassImp(R3BGTPCCalData);

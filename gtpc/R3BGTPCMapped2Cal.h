@@ -22,55 +22,54 @@
 class TClonesArray;
 class R3BGTPCCalPar;
 
-class R3BGTPCMapped2Cal : public FairTask
-{
-  public:
-    /** Default constructor **/
-    R3BGTPCMapped2Cal();
+class R3BGTPCMapped2Cal : public FairTask {
+public:
+  /** Default constructor **/
+  R3BGTPCMapped2Cal();
 
-    /** Destructor **/
-    virtual ~R3BGTPCMapped2Cal();
+  /** Destructor **/
+  virtual ~R3BGTPCMapped2Cal();
 
-    /** Virtual method Exec **/
-    virtual void Exec(Option_t* option);
+  /** Virtual method Exec **/
+  virtual void Exec(Option_t *option);
 
-    /** Virtual method Reset **/
-    virtual void Reset();
+  /** Virtual method Reset **/
+  virtual void Reset();
 
-    /** Virtual method SetParContainers **/
-    virtual void SetParContainers();
+  /** Virtual method SetParContainers **/
+  virtual void SetParContainers();
 
-    // Fair specific
-    /** Virtual method Init **/
-    virtual InitStatus Init();
+  // Fair specific
+  /** Virtual method Init **/
+  virtual InitStatus Init();
 
-    /** Virtual method ReInit **/
-    virtual InitStatus ReInit();
+  /** Virtual method ReInit **/
+  virtual InitStatus ReInit();
 
-    /** Virtual method Finish **/
-    virtual void Finish();
+  /** Virtual method Finish **/
+  virtual void Finish();
 
-    /** Accessor to select online mode **/
-    void SetOnline(Bool_t option) { fOnline = option; }
+  /** Accessor to select online mode **/
+  void SetOnline(Bool_t option) { fOnline = option; }
 
-  private:
-    void SetParameter();
+private:
+  void SetParameter();
 
-    // TArrayF* fCalParams;
-    // or maybe
-    // Double_t fCalParam;
+  // TArrayF* fCalParams;
+  // or maybe
+  // Double_t fCalParam;
 
-    R3BGTPCCalPar* fCal_Par;         /**< Parameter container. >*/
-    TClonesArray* fGTPCMappedDataCA; /**< Array with GTPC Mapped- input data. >*/
-    TClonesArray* fGTPCCalDataCA;    /**< Array with GTPC Cal- output data. >*/
+  R3BGTPCCalPar *fCal_Par;         /**< Parameter container. >*/
+  TClonesArray *fGTPCMappedDataCA; /**< Array with GTPC Mapped- input data. >*/
+  TClonesArray *fGTPCCalDataCA;    /**< Array with GTPC Cal- output data. >*/
 
-    Bool_t fOnline; // Selector for online data storage
+  Bool_t fOnline; // Selector for online data storage
 
-    /** Private method AddCalData **/
-    //** Adds a GTPCCalData to the CalCollection
-    R3BGTPCCalData* AddCalData(UShort_t padId, std::vector<UShort_t> adc_calib);
+  /** Private method AddCalData **/
+  //** Adds a GTPCCalData to the CalCollection
+  R3BGTPCCalData *AddCalData(UShort_t padId, std::vector<UShort_t> adc_calib);
 
-    ClassDef(R3BGTPCMapped2Cal, 1)
+  ClassDef(R3BGTPCMapped2Cal, 1)
 };
 
 #endif

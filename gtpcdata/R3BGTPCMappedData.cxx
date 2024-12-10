@@ -14,22 +14,12 @@
 #include "R3BGTPCMappedData.h"
 
 R3BGTPCMappedData::R3BGTPCMappedData()
-    : fPadId(0)
-    , fADC(0)
-    , fIsValid(0)
-    , fIsPedestalSubtracted(0)
-{
-}
+    : fPadId(0), fADC(0), fIsValid(0), fIsPedestalSubtracted(0) {}
 
-R3BGTPCMappedData::R3BGTPCMappedData(UShort_t padId,
-                                     std::vector<UShort_t> adc,
+R3BGTPCMappedData::R3BGTPCMappedData(UShort_t padId, std::vector<UShort_t> adc,
                                      Bool_t isValid,
                                      Bool_t isPedestalSubtracted)
-    : fPadId(padId)
-    , fADC(adc)
-    , fIsValid(isValid)
-    , fIsPedestalSubtracted(isPedestalSubtracted)
-{
-}
+    : fPadId(padId), fADC(adc), fIsValid(isValid),
+      fIsPedestalSubtracted(isPedestalSubtracted) {}
 
 ClassImp(R3BGTPCMappedData);

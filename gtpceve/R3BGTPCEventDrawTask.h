@@ -32,51 +32,50 @@ class TVector3;
 #include <Rtypes.h>
 #include <fstream>
 
-class R3BGTPCEventDrawTask : public FairTask
-{
+class R3BGTPCEventDrawTask : public FairTask {
 
-  public:
-    R3BGTPCEventDrawTask();
-    R3BGTPCEventDrawTask(TString modes);
+public:
+  R3BGTPCEventDrawTask();
+  R3BGTPCEventDrawTask(TString modes);
 
-    ~R3BGTPCEventDrawTask();
+  ~R3BGTPCEventDrawTask();
 
-    InitStatus Init();
-    void Exec(Option_t* option);
-    void Reset();
+  InitStatus Init();
+  void Exec(Option_t *option);
+  void Reset();
 
-  private:
-    R3BGTPCEventManager* fEventManager;
-    R3BGTPCMap* fMap;
+private:
+  R3BGTPCEventManager *fEventManager;
+  R3BGTPCMap *fMap;
 
-    // Canvases and histograms
-    TCanvas* fCvsPadPlane;
-    TH2Poly* fPadPlane;
-    TCanvas* fCvsPadWave;
-    TH1I* fPadWave;
+  // Canvases and histograms
+  TCanvas *fCvsPadPlane;
+  TH2Poly *fPadPlane;
+  TCanvas *fCvsPadWave;
+  TH1I *fPadWave;
 
-    // Data containers
-    TClonesArray* fHitCA;
-    TClonesArray* fTrackCA;
+  // Data containers
+  TClonesArray *fHitCA;
+  TClonesArray *fTrackCA;
 
-    // Points
-    TEveBoxSet* fHitBoxSet;
-    TEvePointSet* fHitSet;
-    std::vector<TEvePointSet*> fTrackHitSet;
-    std::vector<TEveBoxSet*> fHitClusterSet;
+  // Points
+  TEveBoxSet *fHitBoxSet;
+  TEvePointSet *fHitSet;
+  std::vector<TEvePointSet *> fTrackHitSet;
+  std::vector<TEveBoxSet *> fHitClusterSet;
 
-    // Drawing functions
-    void DrawHitPoints();
-    void DrawPadPlane();
-    void DrawTracks();
+  // Drawing functions
+  void DrawHitPoints();
+  void DrawPadPlane();
+  void DrawTracks();
 
-    // Updating
-    void UpdateCvsPadPlane();
+  // Updating
+  void UpdateCvsPadPlane();
 
-    // Colors
-    EColor GetTrackColor(int i);
+  // Colors
+  EColor GetTrackColor(int i);
 
-    ClassDef(R3BGTPCEventDrawTask, 1);
+  ClassDef(R3BGTPCEventDrawTask, 1);
 };
 
 #endif

@@ -20,61 +20,61 @@
 
 static R3BGTPCContFact gR3BGTPCContFact;
 
-R3BGTPCContFact::R3BGTPCContFact()
-{
-    // Constructor (called when the library is loaded)
+R3BGTPCContFact::R3BGTPCContFact() {
+  // Constructor (called when the library is loaded)
 
-    fName = "R3BGTPCContFact";
-    fTitle = "Factory for GTPC parameter containers in libR3BGTPC";
-    setAllContainers();
-    FairRuntimeDb::instance()->addContFactory(this);
+  fName = "R3BGTPCContFact";
+  fTitle = "Factory for GTPC parameter containers in libR3BGTPC";
+  setAllContainers();
+  FairRuntimeDb::instance()->addContFactory(this);
 }
 
-void R3BGTPCContFact::setAllContainers()
-{
-    // Creates the Container objects with all accepted contexts and adds them
-    // to the list of containers for the GTPC library.
+void R3BGTPCContFact::setAllContainers() {
+  // Creates the Container objects with all accepted contexts and adds them
+  // to the list of containers for the GTPC library.
 
-    FairContainer* p1 = new FairContainer("GTPCGeoPar", "GTPC Geometry Parameters", "GTPCGeoParContext");
-    p1->addContext("GTPCGeoParContext");
-    containers->Add(p1);
+  FairContainer *p1 = new FairContainer(
+      "GTPCGeoPar", "GTPC Geometry Parameters", "GTPCGeoParContext");
+  p1->addContext("GTPCGeoParContext");
+  containers->Add(p1);
 
-    FairContainer* p2 = new FairContainer("GTPCGasPar", "GTPC Gas Parameters", "GTPCGasParContext");
-    p2->addContext("GTPCGasParContext");
-    containers->Add(p2);
+  FairContainer *p2 = new FairContainer("GTPCGasPar", "GTPC Gas Parameters",
+                                        "GTPCGasParContext");
+  p2->addContext("GTPCGasParContext");
+  containers->Add(p2);
 
-    FairContainer* p3 = new FairContainer("GTPCElecPar", "GTPC Electronic Parameters", "GTPCElecParContext");
-    p3->addContext("GTPCElecParContext");
-    containers->Add(p3);
+  FairContainer *p3 = new FairContainer(
+      "GTPCElecPar", "GTPC Electronic Parameters", "GTPCElecParContext");
+  p3->addContext("GTPCElecParContext");
+  containers->Add(p3);
 }
 
-FairParSet* R3BGTPCContFact::createContainer(FairContainer* c)
-{
-    /** Calls the constructor of the corresponding parameter container.
-     * For an actual context, which is not an empty string and not the default context
-     * of this container, the name is concatenated with the context.
-     */
+FairParSet *R3BGTPCContFact::createContainer(FairContainer *c) {
+  /** Calls the constructor of the corresponding parameter container.
+   * For an actual context, which is not an empty string and not the default
+   * context of this container, the name is concatenated with the context.
+   */
 
-    const char* name = c->GetName();
-    LOG(info) << "R3BGTPCContFact: Create container name: " << name;
-    FairParSet* p = 0;
+  const char *name = c->GetName();
+  LOG(info) << "R3BGTPCContFact: Create container name: " << name;
+  FairParSet *p = 0;
 
-    if (strcmp(name, "GTPCGeoPar") == 0)
-    {
-        p = new R3BGTPCGeoPar(c->getConcatName().Data(), c->GetTitle(), c->getContext());
-    }
+  if (strcmp(name, "GTPCGeoPar") == 0) {
+    p = new R3BGTPCGeoPar(c->getConcatName().Data(), c->GetTitle(),
+                          c->getContext());
+  }
 
-    if (strcmp(name, "GTPCGasPar") == 0)
-    {
-        p = new R3BGTPCGasPar(c->getConcatName().Data(), c->GetTitle(), c->getContext());
-    }
+  if (strcmp(name, "GTPCGasPar") == 0) {
+    p = new R3BGTPCGasPar(c->getConcatName().Data(), c->GetTitle(),
+                          c->getContext());
+  }
 
-    if (strcmp(name, "GTPCElecPar") == 0)
-    {
-        p = new R3BGTPCElecPar(c->getConcatName().Data(), c->GetTitle(), c->getContext());
-    }
+  if (strcmp(name, "GTPCElecPar") == 0) {
+    p = new R3BGTPCElecPar(c->getConcatName().Data(), c->GetTitle(),
+                           c->getContext());
+  }
 
-    return p;
+  return p;
 }
 
 ClassImp(R3BGTPCContFact)

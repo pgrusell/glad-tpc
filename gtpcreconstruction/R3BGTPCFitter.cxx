@@ -1,10 +1,10 @@
 #include "R3BGTPCFitter.h"
-#include "R3BGTPCHitData.h"
 #include "R3BGTPCHitClusterData.h"
+#include "R3BGTPCHitData.h"
 #include "R3BGTPCSpacePointMeasurement.h"
 #include "R3BGTPCTrackData.h"
 
-//GENFIT
+// GENFIT
 #include <AbsKalmanFitter.h>
 #include <AbsMeasurement.h>
 #include <AbsTrackRep.h>
@@ -43,11 +43,10 @@
 #include <TVector3.h>
 #include <TrackCand.h>
 
-R3BGTPCFitter::R3BGTPCFitter()
-{
+R3BGTPCFitter::R3BGTPCFitter() {
   fTPCDetID = 0;
   fPDGCode = 211;
-  
+
   fKalmanFitter = std::make_shared<genfit::KalmanFitterRefTrack>();
   fKalmanFitter->setMinIterations(5);
   fKalmanFitter->setMaxIterations(20);
@@ -56,138 +55,141 @@ R3BGTPCFitter::R3BGTPCFitter()
   fHitClusterArray = new TClonesArray("R3BGTPCHitClusterData");
 
   fMeasurementProducer =
-      new genfit::MeasurementProducer<R3BGTPCHitClusterData, genfit::R3BGTPCSpacepointMeasurement>(fHitClusterArray);
-  fMeasurementFactory = new genfit::MeasurementFactory<genfit::AbsMeasurement>();
+      new genfit::MeasurementProducer<R3BGTPCHitClusterData,
+                                      genfit::R3BGTPCSpacepointMeasurement>(
+          fHitClusterArray);
+  fMeasurementFactory =
+      new genfit::MeasurementFactory<genfit::AbsMeasurement>();
   fMeasurementFactory->addProducer(fTPCDetID, fMeasurementProducer);
 
-  genfit::FieldManager::getInstance()->init(new genfit::ConstField(0.0, 20.0, 0.0)); // kGauss
-  genfit::MaterialEffects *materialEffects = genfit::MaterialEffects::getInstance();
+  genfit::FieldManager::getInstance()->init(
+      new genfit::ConstField(0.0, 20.0, 0.0)); // kGauss
+  genfit::MaterialEffects *materialEffects =
+      genfit::MaterialEffects::getInstance();
   materialEffects->init(new genfit::TGeoMaterialInterface());
 }
 
-R3BGTPCFitter::~R3BGTPCFitter()
-{
+R3BGTPCFitter::~R3BGTPCFitter() {
 
-   delete fGenfitTrackArray;
-   delete fHitClusterArray;
-   delete fMeasurementProducer;
-   delete fMeasurementFactory;
+  delete fGenfitTrackArray;
+  delete fHitClusterArray;
+  delete fMeasurementProducer;
+  delete fMeasurementFactory;
 }
 
-void R3BGTPCFitter::Init()
-{
-   std::cout << cGREEN << " R3BGTPCFitter::Init() " << cNORMAL << "\n";
-   
-   fHitClusterArray->Delete();
-   fGenfitTrackArray->Delete();
+void R3BGTPCFitter::Init() {
+  std::cout << cGREEN << " R3BGTPCFitter::Init() " << cNORMAL << "\n";
+
+  fHitClusterArray->Delete();
+  fGenfitTrackArray->Delete();
 }
-   
-genfit::Track *R3BGTPCFitter::FitTrack(R3BGTPCTrackData* track)
-{
-   fHitClusterArray->Delete();
-   genfit::TrackCand trackCand;
 
-   auto hitClusterArray = track->GetHitClusterArray();
+genfit::Track *R3BGTPCFitter::FitTrack(R3BGTPCTrackData *track) {
+  fHitClusterArray->Delete();
+  genfit::TrackCand trackCand;
 
-   TVector3 pos_res;
-   TVector3 mom_res;
-   TMatrixDSym cov_res;
+  auto hitClusterArray = track->GetHitClusterArray();
 
-   std::cout << cYELLOW << " Track " << track->GetTrackId() << " with " << hitClusterArray->size() << " clusters "
-             << cNORMAL << "\n";
+  TVector3 pos_res;
+  TVector3 mom_res;
+  TMatrixDSym cov_res;
 
-   for (auto cluster : *hitClusterArray) {
+  std::cout << cYELLOW << " Track " << track->GetTrackId() << " with "
+            << hitClusterArray->size() << " clusters " << cNORMAL << "\n";
+
+  for (auto cluster : *hitClusterArray) {
     Int_t idx = fHitClusterArray->GetEntriesFast();
     new ((*fHitClusterArray)[idx]) R3BGTPCHitClusterData(cluster);
     trackCand.addHit(fTPCDetID, idx);
-    
-   }
+  }
 
-   auto iniCluster = hitClusterArray->front(); 
-   auto endCluster = hitClusterArray->back();
+  auto iniCluster = hitClusterArray->front();
+  auto endCluster = hitClusterArray->back();
 
-   std::cout<<" Initial cluster "<<iniCluster.GetX()<<"  "<<iniCluster.GetY()<<"  "<<iniCluster.GetZ()<<"\n";
-   //std::cout<<" End cluster "<<endCluster.GetX()<<"  "<<endCluster.GetY()<<"  "<<endCluster.GetZ()<<"\n";
-   
-   TVector3  posSeed( iniCluster.GetX(), iniCluster.GetY(), iniCluster.GetZ());
-   posSeed.SetMag(posSeed.Mag());
+  std::cout << " Initial cluster " << iniCluster.GetX() << "  "
+            << iniCluster.GetY() << "  " << iniCluster.GetZ() << "\n";
+  // std::cout<<" End cluster "<<endCluster.GetX()<<"  "<<endCluster.GetY()<<"
+  // "<<endCluster.GetZ()<<"\n";
 
-    TMatrixDSym covSeed(6); // TODO  (hard coded in SpacePoint measurement)
-   TMatrixD covMatrix = iniCluster.GetCovMatrix();
-   for (Int_t iComp = 0; iComp < 3; iComp++)
-   {
-       covSeed(iComp, iComp) = 0.4; // covMatrix(iComp, iComp); // units to check
-       std::cout << covSeed(iComp, iComp) << "\n";
-   }
+  TVector3 posSeed(iniCluster.GetX(), iniCluster.GetY(), iniCluster.GetZ());
+  posSeed.SetMag(posSeed.Mag());
 
-   for (Int_t iComp = 3; iComp < 6; iComp++)
-      covSeed(iComp, iComp) = covSeed(iComp - 3, iComp - 3);
+  TMatrixDSym covSeed(6); // TODO  (hard coded in SpacePoint measurement)
+  TMatrixD covMatrix = iniCluster.GetCovMatrix();
+  for (Int_t iComp = 0; iComp < 3; iComp++) {
+    covSeed(iComp, iComp) = 0.4; // covMatrix(iComp, iComp); // units to check
+    std::cout << covSeed(iComp, iComp) << "\n";
+  }
 
-   TVector3 momSeed(0.0, 0.0, 0.1);
-   momSeed.SetTheta(TMath::Pi() / 2.0);
-   // momSeed.SetPhi(0);
-   trackCand.setCovSeed(covSeed);
-   trackCand.setPosMomSeed(posSeed, momSeed,-1);
-   trackCand.setPdgCode(fPDGCode);
-   // trackCand.Print();
+  for (Int_t iComp = 3; iComp < 6; iComp++)
+    covSeed(iComp, iComp) = covSeed(iComp - 3, iComp - 3);
 
-   auto *gfTrack =
-      new ((*fGenfitTrackArray)[fGenfitTrackArray->GetEntriesFast()]) genfit::Track(trackCand, *fMeasurementFactory);
-   gfTrack->addTrackRep(new genfit::RKTrackRep(fPDGCode));
+  TVector3 momSeed(0.0, 0.0, 0.1);
+  momSeed.SetTheta(TMath::Pi() / 2.0);
+  // momSeed.SetPhi(0);
+  trackCand.setCovSeed(covSeed);
+  trackCand.setPosMomSeed(posSeed, momSeed, -1);
+  trackCand.setPdgCode(fPDGCode);
+  // trackCand.Print();
 
-   auto *trackRep = dynamic_cast<genfit::RKTrackRep *>(gfTrack->getTrackRep(0));
-   
+  auto *gfTrack =
+      new ((*fGenfitTrackArray)[fGenfitTrackArray->GetEntriesFast()])
+          genfit::Track(trackCand, *fMeasurementFactory);
+  gfTrack->addTrackRep(new genfit::RKTrackRep(fPDGCode));
 
-   try {
-      fKalmanFitter->processTrackWithRep(gfTrack, trackRep, false);
-   } catch (genfit::Exception &e) {
-      std::cout << "   Exception caught from Kalman Fitter : " << e.what() << "\n";
-      return nullptr;
-   }
+  auto *trackRep = dynamic_cast<genfit::RKTrackRep *>(gfTrack->getTrackRep(0));
 
-   genfit::FitStatus *fitStatus;
-   try {
-     //if (fVerbosity > 0) {
-         fitStatus = gfTrack->getFitStatus(trackRep);
-         std::cout << cYELLOW << " Is fitted? " << fitStatus->isFitted() << "\n";
-         std::cout << " Is Converged ? " << fitStatus->isFitConverged() << "\n";
-         std::cout << " Is Converged Partially? " << fitStatus->isFitConvergedPartially() << "\n";
-         std::cout << " Is pruned ? " << fitStatus->isTrackPruned() << cNORMAL << "\n";
-         fitStatus->Print();
-	 // }
-   } catch (genfit::Exception &e) {
-      return nullptr;
-   }
+  try {
+    fKalmanFitter->processTrackWithRep(gfTrack, trackRep, false);
+  } catch (genfit::Exception &e) {
+    std::cout << "   Exception caught from Kalman Fitter : " << e.what()
+              << "\n";
+    return nullptr;
+  }
 
-   genfit::MeasuredStateOnPlane fitState;
-   // genfit::TrackPoint* firstPoint;
-   // genfit::TrackPoint* lastPoint;
-   // genfit::KalmanFitterInfo* pointKFitterInfo;
-   try
-   {
-       fitState = gfTrack->getFittedState();
-       // if (fVerbosity > 0)
-       fitState.Print();
-       // Fit result
-       fitState.getPosMomCov(pos_res, mom_res, cov_res);
-       // if (fVerbosity > 0)
-       std::cout << cYELLOW << "    Total Momentum : " << mom_res.Mag() << " - Position : " << pos_res.X() << "  "
-                 << pos_res.Y() << "  " << pos_res.Z() << cNORMAL << "\n";
-       // firstPoint = gfTrack->getPointWithMeasurement(0);
-       // lastPoint  = gfTrack->getPointWithMeasurement(gfTrack->getNumPoints()-1);
-       // firstPoint->Print();
-       // lastPoint->Print();
-       // pointKFitterInfo = firstPoint->getKalmanFitterInfo();
-   }
-   catch (genfit::Exception& e)
-   {
-       return nullptr;
-   }
+  genfit::FitStatus *fitStatus;
+  try {
+    // if (fVerbosity > 0) {
+    fitStatus = gfTrack->getFitStatus(trackRep);
+    std::cout << cYELLOW << " Is fitted? " << fitStatus->isFitted() << "\n";
+    std::cout << " Is Converged ? " << fitStatus->isFitConverged() << "\n";
+    std::cout << " Is Converged Partially? "
+              << fitStatus->isFitConvergedPartially() << "\n";
+    std::cout << " Is pruned ? " << fitStatus->isTrackPruned() << cNORMAL
+              << "\n";
+    fitStatus->Print();
+    // }
+  } catch (genfit::Exception &e) {
+    return nullptr;
+  }
 
-   std::cout << " End of GENFIT "
-             << "\n";
-   std::cout << "               "
-             << "\n";
+  genfit::MeasuredStateOnPlane fitState;
+  // genfit::TrackPoint* firstPoint;
+  // genfit::TrackPoint* lastPoint;
+  // genfit::KalmanFitterInfo* pointKFitterInfo;
+  try {
+    fitState = gfTrack->getFittedState();
+    // if (fVerbosity > 0)
+    fitState.Print();
+    // Fit result
+    fitState.getPosMomCov(pos_res, mom_res, cov_res);
+    // if (fVerbosity > 0)
+    std::cout << cYELLOW << "    Total Momentum : " << mom_res.Mag()
+              << " - Position : " << pos_res.X() << "  " << pos_res.Y() << "  "
+              << pos_res.Z() << cNORMAL << "\n";
+    // firstPoint = gfTrack->getPointWithMeasurement(0);
+    // lastPoint  = gfTrack->getPointWithMeasurement(gfTrack->getNumPoints()-1);
+    // firstPoint->Print();
+    // lastPoint->Print();
+    // pointKFitterInfo = firstPoint->getKalmanFitterInfo();
+  } catch (genfit::Exception &e) {
+    return nullptr;
+  }
 
-   return gfTrack;
-}  
+  std::cout << " End of GENFIT "
+            << "\n";
+  std::cout << "               "
+            << "\n";
+
+  return gfTrack;
+}

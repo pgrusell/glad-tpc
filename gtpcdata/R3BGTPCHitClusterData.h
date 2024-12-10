@@ -8,16 +8,14 @@
 #include <TMatrixT.h>
 
 class R3BGTPCHitClusterData : public R3BGTPCHitData {
- 
-protected:
 
-  TMatrixD fCovMatrix; 
+protected:
+  TMatrixD fCovMatrix;
 
   Double_t fLength = -999;
   Int_t fClusterID = -1;
 
 public:
-
   R3BGTPCHitClusterData();
   R3BGTPCHitClusterData(const R3BGTPCHitClusterData &cluster) = default;
   virtual ~R3BGTPCHitClusterData() = default;

@@ -17,36 +17,35 @@
 #include "TObject.h"
 #include <stdint.h>
 
-class R3BGTPCCalData : public TObject
-{
+class R3BGTPCCalData : public TObject {
 
-  public:
-    // Default Constructor
-    R3BGTPCCalData();
+public:
+  // Default Constructor
+  R3BGTPCCalData();
 
-    /** Standard Constructor
-     *@param padId               Crystal unique identifier
-     *@param adc                 Calibrated adc energies
-     **/
-    R3BGTPCCalData(UShort_t padId, std::vector<UShort_t> adc);
+  /** Standard Constructor
+   *@param padId               Crystal unique identifier
+   *@param adc                 Calibrated adc energies
+   **/
+  R3BGTPCCalData(UShort_t padId, std::vector<UShort_t> adc);
 
-    // Destructor
-    virtual ~R3BGTPCCalData() {}
+  // Destructor
+  virtual ~R3BGTPCCalData() {}
 
-    // Getters
-    inline const UShort_t& GetPadId() const { return fPadId; }
-    inline const std::vector<UShort_t>& GetADC() const { return fADC; }
+  // Getters
+  inline const UShort_t &GetPadId() const { return fPadId; }
+  inline const std::vector<UShort_t> &GetADC() const { return fADC; }
 
-    // Setter
-    void SetPadId(UShort_t padId) { fPadId = padId; }
-    void SetADC(Double_t time) { fADC.at(time)++; }
+  // Setter
+  void SetPadId(UShort_t padId) { fPadId = padId; }
+  void SetADC(Double_t time) { fADC.at(time)++; }
 
-  protected:
-    UShort_t fPadId;            // Pad unique identifier
-    std::vector<UShort_t> fADC; // ADC measurements, variable time bucket
+protected:
+  UShort_t fPadId;            // Pad unique identifier
+  std::vector<UShort_t> fADC; // ADC measurements, variable time bucket
 
-  public:
-    ClassDef(R3BGTPCCalData, 1)
+public:
+  ClassDef(R3BGTPCCalData, 1)
 };
 
 #endif

@@ -18,7 +18,7 @@ set(SRCS
     R3BGTPC.cxx
     R3BGTPCProjector.cxx
     R3BGTPCLangevin.cxx
-    R3BGTPCLangevinTest.cxx
+    R3BGTPCLaserGen.cxx
     R3BGTPCContFact.cxx
     R3BGTPCGeoPar.cxx
     R3BGTPCGasPar.cxx

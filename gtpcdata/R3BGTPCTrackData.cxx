@@ -13,19 +13,12 @@
 
 #include "R3BGTPCTrackData.h"
 
-R3BGTPCTrackData::R3BGTPCTrackData()
-    : fTrackId(0)
-    , fHitArray(0)
-{
-}
+R3BGTPCTrackData::R3BGTPCTrackData() : fTrackId(0), fHitArray(0) {}
 
-R3BGTPCTrackData::R3BGTPCTrackData(std::size_t trackId,
-                                   std::vector<R3BGTPCHitData> hitArray,
-                                   std::vector<R3BGTPCHitClusterData> hitClusterArray)
-    : fTrackId(trackId)
-    , fHitArray(hitArray)
-    , fHitClusterArray(hitClusterArray)
-{
-}
+R3BGTPCTrackData::R3BGTPCTrackData(
+    std::size_t trackId, std::vector<R3BGTPCHitData> hitArray,
+    std::vector<R3BGTPCHitClusterData> hitClusterArray)
+    : fTrackId(trackId), fHitArray(hitArray),
+      fHitClusterArray(hitClusterArray) {}
 
 ClassImp(R3BGTPCTrackData);

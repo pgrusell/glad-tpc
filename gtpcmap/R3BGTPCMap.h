@@ -19,28 +19,27 @@
 #include <set>
 #include <vector>
 
-class R3BGTPCMap : public TObject
-{
+class R3BGTPCMap : public TObject {
 
-  public:
-    R3BGTPCMap();
-    ~R3BGTPCMap();
+public:
+  R3BGTPCMap();
+  ~R3BGTPCMap();
 
-    typedef boost::multi_array<double, 3> multiarray;
-    typedef multiarray::index index;
+  typedef boost::multi_array<double, 3> multiarray;
+  typedef multiarray::index index;
 
-    void GeneratePadPlane();
-    Int_t BinToPad(Int_t binval);
-    std::vector<Float_t> CalcPadCenter(Int_t PadRef);
-    TH2Poly* GetPadPlane();
+  void GeneratePadPlane();
+  Int_t BinToPad(Int_t binval);
+  std::vector<Float_t> CalcPadCenter(Int_t PadRef);
+  TH2Poly *GetPadPlane();
 
-  private:
-    multiarray fPadCoord;
-    multiarray* fPadCoordPtr;
-    std::map<std::vector<int>, int> fPadMap;
-    TH2Poly* fPadPlane;
+private:
+  multiarray fPadCoord;
+  multiarray *fPadCoordPtr;
+  std::map<std::vector<int>, int> fPadMap;
+  TH2Poly *fPadPlane;
 
-    ClassDefOverride(R3BGTPCMap, 1);
+  ClassDefOverride(R3BGTPCMap, 1);
 };
 
 #endif

@@ -7,8 +7,8 @@
  *                    copied verbatim in the file "LICENSE".                  *
  *                                                                            *
  * In applying this license GSI does not waive the privileges and immunities  *
- * granted to it by virtue of its status as an Int_tergovernmental Organization *
- * or submit itself to any jurisdiction.                                      *
+ * granted to it by virtue of its status as an Int_tergovernmental Organization
+ ** or submit itself to any jurisdiction.                                      *
  ******************************************************************************/
 #ifndef R3BGTPCELECPAR_H
 #define R3BGTPCELECPAR_H 1
@@ -22,62 +22,62 @@ using namespace std;
 
 class FairParamList;
 
-class R3BGTPCElecPar : public FairParGenericSet
-{
+class R3BGTPCElecPar : public FairParGenericSet {
 
-  public:
-    R3BGTPCElecPar(const char* name = "GTPCElecPar",
-                   const char* title = "GTPC Elecronic Parameters",
-                   const char* context = "GTPCElecParContext");
+public:
+  R3BGTPCElecPar(const char *name = "GTPCElecPar",
+                 const char *title = "GTPC Elecronic Parameters",
+                 const char *context = "GTPCElecParContext");
 
-    ~R3BGTPCElecPar();
+  ~R3BGTPCElecPar();
 
-    /** Reset all parameters **/
-    virtual void clear();
+  /** Reset all parameters **/
+  virtual void clear();
 
-    /** Store all parameters using FairRuntimeDB **/
-    virtual void putParams(FairParamList* list);
+  /** Store all parameters using FairRuntimeDB **/
+  virtual void putParams(FairParamList *list);
 
-    /** Retrieve all parameters using FairRuntimeDB**/
-    Bool_t getParams(FairParamList* list);
+  /** Retrieve all parameters using FairRuntimeDB**/
+  Bool_t getParams(FairParamList *list);
 
-    /** Print values of parameters to the standard output **/
-    virtual void print();
-    void printParams();
+  /** Print values of parameters to the standard output **/
+  virtual void print();
+  void printParams();
 
-    /** Accessor functions **/
-    const Double_t GetGain() { return Gain; }
-    const Double_t GetTheta() { return Theta; }
-    const Double_t GetNoiseRMS() { return NoiseRMS; }
-    const Double_t GetTimeBinSize() { return TimeBinSize; }
-    const Double_t GetShapingTime() { return ShapingTime; }
-    const Double_t GetThreshold() { return Threshold; }
-    const Double_t GetDriftEField() { return DriftEField; }
-    const Double_t GetDriftTimeStep() { return DriftTimeStep; }
+  /** Accessor functions **/
+  const Double_t GetGain() { return Gain; }
+  const Double_t GetTheta() { return Theta; }
+  const Double_t GetNoiseRMS() { return NoiseRMS; }
+  const Double_t GetTimeBinSize() { return TimeBinSize; }
+  const Double_t GetShapingTime() { return ShapingTime; }
+  const Double_t GetThreshold() { return Threshold; }
+  const Double_t GetDriftEField() { return DriftEField; }
+  const Double_t GetDriftTimeStep() { return DriftTimeStep; }
 
-    void SetGain(Double_t value) { Gain = value; }
-    void SetTheta(Double_t value) { Theta = value; }
-    void SetNoiseRMS(Double_t value) { NoiseRMS = value; }
-    void SetTimeBinSize(Double_t value) { TimeBinSize = value; }
-    void SetShapingTime(Double_t value) { ShapingTime = value; }
-    void SetThreshold(Double_t value) { Threshold = value; }
-    void SetDriftEField(Double_t value) { DriftEField = value; }
-    void SetDriftTimeStep(Double_t value) { DriftTimeStep = value; }
+  void SetGain(Double_t value) { Gain = value; }
+  void SetTheta(Double_t value) { Theta = value; }
+  void SetNoiseRMS(Double_t value) { NoiseRMS = value; }
+  void SetTimeBinSize(Double_t value) { TimeBinSize = value; }
+  void SetShapingTime(Double_t value) { ShapingTime = value; }
+  void SetThreshold(Double_t value) { Threshold = value; }
+  void SetDriftEField(Double_t value) { DriftEField = value; }
+  void SetDriftTimeStep(Double_t value) { DriftTimeStep = value; }
 
-  private:
-    Double_t Gain;          //
-    Double_t Theta;         //
-    Double_t NoiseRMS;      //
-    Double_t TimeBinSize;   // [ns]
-    Double_t ShapingTime;   //
-    Double_t Threshold;     //
-    Double_t DriftEField;   // [V/cm]
-    Double_t DriftTimeStep; // [ns]
+private:
+  Double_t Gain;          //
+  Double_t Theta;         //
+  Double_t NoiseRMS;      //
+  Double_t TimeBinSize;   // [ns]
+  Double_t ShapingTime;   //
+  Double_t Threshold;     //
+  Double_t DriftEField;   // [V/cm]
+  Double_t DriftTimeStep; // [ns]
 
-    const R3BGTPCElecPar& operator=(const R3BGTPCElecPar&); /*< an assignment operator>*/
-    R3BGTPCElecPar(const R3BGTPCElecPar&);                  /*< a copy constructor >*/
+  const R3BGTPCElecPar &
+  operator=(const R3BGTPCElecPar &);      /*< an assignment operator>*/
+  R3BGTPCElecPar(const R3BGTPCElecPar &); /*< a copy constructor >*/
 
-    ClassDef(R3BGTPCElecPar, 1)
+  ClassDef(R3BGTPCElecPar, 1)
 };
 
 #endif

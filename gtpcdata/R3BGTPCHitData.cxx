@@ -14,21 +14,10 @@
 #include "R3BGTPCHitData.h"
 
 R3BGTPCHitData::R3BGTPCHitData()
-    : fX(0)
-    , fY(0)
-    , fZ(0)
-    , fLongWidth(0)
-    , fEnergy(0)
-{
-}
+    : fX(0), fY(0), fZ(0), fLongWidth(0), fEnergy(0) {}
 
-R3BGTPCHitData::R3BGTPCHitData(Double_t x, Double_t y, Double_t z, Double_t longWidth, Double_t energy)
-    : fX(x)
-    , fY(y)
-    , fZ(z)
-    , fLongWidth(longWidth)
-    , fEnergy(energy)
-{
-}
+R3BGTPCHitData::R3BGTPCHitData(Double_t x, Double_t y, Double_t z,
+                               Double_t longWidth, Double_t energy)
+    : fX(x), fY(y), fZ(z), fLongWidth(longWidth), fEnergy(energy) {}
 
 ClassImp(R3BGTPCHitData);
