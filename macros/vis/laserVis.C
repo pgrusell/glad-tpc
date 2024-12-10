@@ -164,6 +164,80 @@ void laserPadPlane(TString inputSimFile, TString title, TString mode)
 }
 
 
+void laserPadPlane2(TString inputSimFile, TString title, TString mode)
+{
+    initializeGlobals();
+
+    std::shared_ptr<R3BGTPCMap> fTPCMap;
+    TH2* fPadPlane;
+    fTPCMap = std::make_shared<R3BGTPCMap>();
+    fTPCMap->GeneratePadPlane();
+    fPadPlane = fTPCMap->GetPadPlane();
+
+
+    ////////////////////////////////////////////////////////////////////////
+    // EVENT ACCESS
+    ////////////////////////////////////////////////////////////////////////
+
+    // File access
+    TFile* simFile = TFile::Open(inputSimFile, "READ");
+    TTree* TEvt = (TTree*)simFile->Get("evt");
+    Int_t nevents = TEvt->GetEntries();
+
+    // Projection Point Definition
+    TClonesArray* gtpcProjPointCA;
+    R3BGTPCProjPoint* ppoint = new R3BGTPCProjPoint;
+    gtpcProjPointCA = new TClonesArray("R3BGTPCProjPoint", 5);
+    TBranch* branchGTPCProjPoint = TEvt->GetBranch("GTPCProjPoint");
+    branchGTPCProjPoint->SetAddress(&gtpcProjPointCA);
+
+    // Event 0 analysis
+    Int_t padsPerEvent = 0;
+    Int_t nb = 0;
+    Int_t beamPadsWithSignalPerEvent, productPadsWithSignalPerEvent;
+    Double_t tPad;
+    Int_t xPad, zPad, yPad;
+    Int_t numberOfTimeHistos = 0;
+
+    gtpcProjPointCA->Clear();
+    nb += TEvt->GetEvent(0);
+    padsPerEvent = gtpcProjPointCA->GetEntries();
+
+    if (padsPerEvent > 0)
+    {
+        for (Int_t h = 0; h < padsPerEvent; h++)
+        {
+            ppoint = (R3BGTPCProjPoint*)gtpcProjPointCA->At(h);
+
+            tPad = ((TH1S*)(ppoint->GetTimeDistribution()))->GetMean();
+            if (ppoint->GetVirtualPadID() < 0){continue;}
+            std::cout << ppoint->GetVirtualPadID() << std::endl;
+            
+            fPadPlane->GetBinXYZ(ppoint->GetVirtualPadID(), xPad, zPad, yPad);
+            fPadPlane->Fill(xPad, zPad);
+            //xPad--;
+            //zPad--;
+            fPadPlane->AddBinContent(xPad, zPad, ppoint->GetCharge());
+
+            sprintf(hname, "pad %i", ppoint->GetVirtualPadID());
+        }
+
+        numberOfTimeHistos = padsPerEvent;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // RESULTS
+    ////////////////////////////////////////////////////////////////////////
+
+    auto *file = new TFile("laser_results.root", mode);
+    fPadPlane->Draw("zcol");
+    fPadPlane->Write();
+
+    file->Close();
+
+
+}
+
 /*
 void fillMagneticField(TH3F* &hx, TH3F* &hy, TH3F* &hz, Double_t fYIn=24.312,
  Double_t fZIn=6.98, Double_t fAlpha=11.67, Double_t fBeta=1.36)
@@ -278,32 +352,34 @@ void fillMagneticField(TH3F* &hx, TH3F* &hy, TH3F* &hz, Double_t fYIn=24.312,
 
 
 }
-
 */
 
-void run_laserPadPlane(TString gladFieldSource="../proj/laser_gen_gladField.root", TString constFieldSource = "no_init", Bool_t plotMagField=kFALSE)
+
+
+void laserVis(TString gladFieldSource = "../proj/laser_gen_gladField.root", TString constFieldSource = "no_init", Bool_t plotMagField=kFALSE)
 {
 
     initializeGlobals();
 
     // Save the pad plane projections using the former function
-    laserPadPlane(gladFieldSource, "gladField", "RECREATE");
-    if (constFieldSource != "no_init"){laserPadPlane(constFieldSource, "constField", "UPDATE");}
+    laserPadPlane2(gladFieldSource, "gladField", "RECREATE");
+    if (constFieldSource != "no_init"){laserPadPlane2(constFieldSource, "constField", "UPDATE");}
     
     // Get both histograms
     auto *f = new TFile("laser_results.root", "read");
     auto *histo1 = (TH2S*)f->Get("htrackInPads_constField"); 
     auto *histo2 = (TH2S*)f->Get("htrackInPads_gladField"); 
 
-    /*
-    if (plotMagField)
-    {
+    
+    //if (plotMagField)
+    //{
         /*
         auto *hx = new TH3F("hx", "X Coordinate", histoBins, 0, histoBins,
                                              histoBins2, 0, histoBins2,
                                              100, 0, 100);
 
-        */ /*
+        */
+        /*
         auto *hx = new TH3F("hx", "X Coordinate", 500, 0, 44,
                                              500, 0, 120,
                                              200, 0, 200);
@@ -321,6 +397,7 @@ void run_laserPadPlane(TString gladFieldSource="../proj/laser_gen_gladField.root
 
     }
     */
+
 
     if (histo1 == NULL)
     {
