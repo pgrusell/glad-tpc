@@ -82,21 +82,11 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
   // NB: <D.B>
   // If the Global Position of the Magnet is changed
   // the Field Map has to be transformed accordingly
-
-  /*
+  
   R3BGladFieldMap *magField = new R3BGladFieldMap("R3BGladMap");
   magField->SetScale(-1.);
   run->SetField(magField);
-*/
 
-
-   
-  R3BGladFieldMap *magField = new R3BGladFieldMap("R3BGladMap");
-  magField->SetScale(-1.);
-  //magField->Init();
-
-
-  
   // Constant Magnetic field
   //FairConstField *constField = new FairConstField();
 
@@ -166,11 +156,9 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
   // -----   Runtime database   ---------------------------------------------
   
   R3BFieldPar *fieldPar = (R3BFieldPar *)rtdb->getContainer("R3BFieldPar");
-  //fieldPar->SetParameters(constField);
-  //fieldPar->setChanged();
+  fieldPar->SetParameters(constField);
+  fieldPar->setChanged();
 
-
-  /**
   if (NULL != magField) {
     if (constBfield)
       fieldPar->SetParameters(constField);
@@ -179,9 +167,7 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype",
 
     fieldPar->setChanged();
   }
-  */
  
-
 
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);

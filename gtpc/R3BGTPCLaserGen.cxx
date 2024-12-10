@@ -35,7 +35,6 @@ R3BGTPCLaserGen::R3BGTPCLaserGen()
     , fGTPCElecPar(nullptr)
     , fGTPCPoints(nullptr)
     , fGTPCProjPoint(nullptr)
-    , fGTPCCalData(new TClonesArray("R3BGTPCCalData"))
     , MCTrackCA(nullptr)
 {
     // ALL UNITS IN cm, ns, V/cm, Tesla and GeV
@@ -63,7 +62,6 @@ R3BGTPCLaserGen::~R3BGTPCLaserGen()
 {
     fGTPCPoints->Clear();
     fGTPCProjPoint->Clear();
-    fGTPCCalData->Clear();
     MCTrackCA->Clear();
 }
 
@@ -122,21 +120,11 @@ InitStatus R3BGTPCLaserGen::Init()
         LOG(fatal) << "R3BMCTrack::Init No MCTrack!";
         return kFATAL;
     }
+
     MCTrackCA = (TClonesArray*)ioman->GetObject("MCTrack");
+    fGTPCProjPoint = new TClonesArray("R3BGTPCProjPoint");
+    ioman->Register("GTPCProjPoint", GetName(), fGTPCProjPoint, kTRUE);
 
-    Int_t outputMode = 0;
-
-
-    //if (outputMode == 0)
-    { // Output: TClonesArray of R3BGTPCCalData
-        fGTPCCalData = new TClonesArray("R3BGTPCCalData");
-        ioman->Register("GTPCCalData", GetName(), fGTPCCalData, kTRUE);
-    }
-    //else if (outputMode == 1)
-    { // Output: TClonesArray of R3BGTPCProjPoint
-        fGTPCProjPoint = new TClonesArray("R3BGTPCProjPoint");
-        ioman->Register("GTPCProjPoint", GetName(), fGTPCProjPoint, kTRUE);
-    }
 
     /*   //PREPARE PROPER PARAMETER CONTAINERS FOR DRIFT PARAMETERS
          fEIonize  = fPar->GetEIonize()/1000000000; // [GeV]
@@ -198,7 +186,6 @@ void R3BGTPCLaserGen::Exec(Option_t*)
 {
 
     fGTPCProjPoint->Clear("C");
-    fGTPCCalData->Clear("C");
 
     LOG(info) << "R3BGTPCLaserGen: test";
     Int_t nPoints = fGTPCPoints->GetEntries();
@@ -425,8 +412,8 @@ void R3BGTPCLaserGen::Exec(Option_t*)
 
             // cout << "padID: " << padID << endl;
 
-            /*
-
+            // Save as a projection points
+            
             Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();
             for (Int_t pp = 0; pp < nProjPoints; pp++)
             {
@@ -458,79 +445,6 @@ void R3BGTPCLaserGen::Exec(Option_t*)
             }
 
             virtualPadFound = kFALSE;
-
-            */
-
-           Double_t fTimeBinSize = 1000;
-           Int_t outputMode = 1;
-
-        
-           if (outputMode == 0)
-            { // Output: TClonesArray of R3BGTPCCalData
-                Int_t nCalData = fGTPCCalData->GetEntriesFast();
-                for (Int_t pp = 0; pp < nCalData; pp++)
-                {
-                    if (((R3BGTPCCalData*)fGTPCCalData->At(pp))->GetPadId() == padID)
-                    {
-                        // already existing R3BGTPCCalData... add time and electron
-                        projTime = projTime / fTimeBinSize; // moving from ns to binsize
-                        if (projTime < 0)
-                            projTime = 0; // Fills (first) underflow bin
-                        else if (projTime > 511)
-                            projTime = 511; // Fills (last) overflow bin
-                        ((R3BGTPCCalData*)fGTPCCalData->At(pp))->SetADC(projTime);
-                        virtualPadFound = kTRUE;
-                        break;
-                    }
-
-                }
-                if (!virtualPadFound)
-                {
-                    std::vector<UShort_t> adc(512, 0);
-                    projTime = projTime / fTimeBinSize; // moving from ns to binsize
-                    if (projTime < 0)
-                        projTime = 0; // Fills (first) underflow bin
-                    else if (projTime > 511)
-                        projTime = 511; // Fills (last) overflow bin
-                    adc.at(projTime)++;
-                    new ((*fGTPCCalData)[nCalData]) R3BGTPCCalData(padID, adc);
-                }
-                virtualPadFound = kFALSE;
-                
-            }
-            else if (outputMode == 1)
-            { // Output: TClonesArray of R3BGTPCProjPoint
-                Int_t nProjPoints = fGTPCProjPoint->GetEntriesFast();
-                for (Int_t pp = 0; pp < nProjPoints; pp++)
-                {
-                    if (((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->GetVirtualPadID() == padID)
-                    {
-                        // already existing R3BGTPCProjPoint... add time and electron
-                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->AddCharge();
-                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))
-                            ->SetTimeDistr(projTime / fTimeBinSize, 1); // micros
-                        virtualPadFound = kTRUE;
-                        break;
-                    }
-                }
-                if (!virtualPadFound)
-                {
-                    new ((*fGTPCProjPoint)[nProjPoints]) R3BGTPCProjPoint(padID,
-                                                                            projTime / fTimeBinSize, // micros
-                                                                            1,
-                                                                            evtID,
-                                                                            PDGCode,
-                                                                            MotherId,
-                                                                            Vertex_x0,
-                                                                            Vertex_y0,
-                                                                            Vertex_z0,
-                                                                            Vertex_px0,
-                                                                            Vertex_py0,
-                                                                            Vertex_pz0);
-                }
-                virtualPadFound = kFALSE;
-            }
-            
 
         }
 

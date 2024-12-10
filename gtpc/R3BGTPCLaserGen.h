@@ -26,7 +26,6 @@
 #include "R3BGTPCProjPoint.h"
 #include "TClonesArray.h"
 #include "TVirtualMC.h"
-#include "R3BGTPCCalData.h"
 
 /**
  * GTPC drift calculation using Langevin equation task
@@ -70,7 +69,6 @@ class R3BGTPCLaserGen : public FairTask
 
     TClonesArray* fGTPCPoints;
     TClonesArray* fGTPCProjPoint;
-    TClonesArray* fGTPCCalData;
     // MCTrack- vertex information
     TClonesArray* MCTrackCA;
 
