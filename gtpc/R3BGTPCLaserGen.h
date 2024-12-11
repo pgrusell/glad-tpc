@@ -91,6 +91,8 @@ class R3BGTPCLaserGen : public FairTask
     Double_t fYIn;
     Double_t fZIn;
     Double_t fMaxLength;
+    Double_t fOffsetX;
+    Double_t fOffsetZ;
 
     Int_t fNumberOfGeneratedElectrons; //!< Number of electrons to generate in each point of the test
 

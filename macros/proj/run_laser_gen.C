@@ -74,11 +74,13 @@ void run_laser_gen(Bool_t constB = kFALSE)
     R3BGTPCLaserGen* lasergen = new R3BGTPCLaserGen();
 
     // lasergen->SetDriftParameters(ionizationEnergy, driftVelocity, transDiffCoeff, longDiffCoef, fanoFactor);
-    lasergen->SetDriftParameters(15.e-9, 0.0048, 0.00000216, 0.00000216, 2);
+    //lasergen->SetDriftParameters(15.e-9, 0.0048, 0.00000216, 0.00000216, 2);
+    lasergen->SetDriftParameters(15.e-9, 7E-03, 1.702E-07, 1.730E-06, 2);
+
 
     //lasergen->SetLaserParameters(alpha, beta, XIn, YIn, ZIn, maxLenght);
-    //lasergen->SetLaserParameters(9.71, 1.54, 0., 16.204, 5.76, 20000.);
-    lasergen->SetLaserParameters(11.67, 1.36, 0., 24.312, 6.98, 1000);
+    lasergen->SetLaserParameters(9.71, 1.54, 0., 16.204, 5.76, 500.);
+    //lasergen->SetLaserParameters(11.67, 1.36, 0., 24.312, 6.98, 1000);
 
     lasergen->SetSizeOfVirtualPad(5); // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
     lasergen->SetNumberOfGeneratedElectrons(10000);

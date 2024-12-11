@@ -54,7 +54,8 @@ R3BGTPCLaserGen::R3BGTPCLaserGen()
     fYIn = 0.;   // cm
     fZIn = 0.;   // cm
     fMaxLength = 0.;
-    //fPointDistance = 0.;
+    fOffsetX = 0.; // cm
+    fOffsetZ = 0.; // cm
 
 }
 
@@ -321,8 +322,6 @@ void R3BGTPCLaserGen::Exec(Option_t*)
 	{
 
         Double_t r = rndGen.Uniform(0, rMin);
-        std::cout << r << std::endl;
-
 
         // Parametrize the straight line with beta and alpha angles
 	    Double_t xval = r * cos(fBeta) * sin(fAlpha);
@@ -350,12 +349,9 @@ void R3BGTPCLaserGen::Exec(Option_t*)
             LOG(debug) << "R3BGTPCLaserGen::Exec, INITIAL VALUES: timeBeforeDrift=" << accDriftTime << " [ns]"
                         << " ele_x=" << ele_x << " ele_y=" << ele_y << " ele_z=" << ele_z << " [cm]";
 
-
-            //std::cout << "Punto" << " " << ele_x << " " << ele_y << " " << ele_z << std::endl;
-            //std::cout << "Campo: " << B_x << B_y << B_z << std::endl;
-
             while (ele_y > -fHalfSizeTPC_Y)  // while not reaching the pad plane [cm]
-            {                                                      
+            {           
+
                 B_x = 0.1 * gladField->GetBx(ele_x, ele_y, ele_z); // Field components return in [kG], moved to [T]
                 B_y = 0.1 * gladField->GetBy(ele_x, ele_y, ele_z);
                 B_z = 0.1 * gladField->GetBz(ele_x, ele_y, ele_z);
@@ -402,13 +398,15 @@ void R3BGTPCLaserGen::Exec(Option_t*)
             // 2) Get the ID of the bin filled in each event
             // 3) This ID can be used to reconstruct the histogram by inverting the process
 
-            projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
-            projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
+            projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) - fOffsetX;
+            projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) - fOffsetZ;
 
-		    Double_t padX, padZ;
-		    padX = histoBins * projX / 2. / fHalfSizeTPC_X;
-		    padZ = histoBins2 * projZ / 2. / fHalfSizeTPC_Z;
-		    Int_t padID = histoID->Fill(padX, padZ);
+            std::cout << projX << " " << projZ << " \n"; 
+
+	        Double_t padX, padZ;
+            padX = histoBins * projX / 2. / fHalfSizeTPC_X;
+	        padZ = histoBins2 * projZ / 2. / fHalfSizeTPC_Z;
+            Int_t padID = histoID->Fill(padX, padZ);
 
             // cout << "padID: " << padID << endl;
 
