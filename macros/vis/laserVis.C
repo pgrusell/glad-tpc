@@ -185,19 +185,23 @@ void laserPadPlane(TString inputSimFile, TString title, TString mode)
 }
 
 
-void laserVis(TString gladFieldSource = "../proj/Prototype/laser_gen_gladField.root", TString constFieldSource = "no_init", Bool_t plotMagField=kFALSE)
+
+
+void laserVis(TString gladFieldSource = "../proj/Prototype/laser_gen_gladField.root", TString constFieldSource = "no_init")
 {
 
     initializeGlobals();
 
     // Save the pad plane projections using the former function
     laserPadPlane(gladFieldSource, "gladField", "RECREATE");
+    laserPadPlane("../proj/Prototype/laser_gen_gladField_mid.root", "gladField_mid", "UPDATE");
     if (constFieldSource != "no_init"){laserPadPlane(constFieldSource, "constField", "UPDATE");}
     
     // Get both histograms
     auto *f = new TFile("laser_results.root", "read");
     auto *histo1 = (TH2S*)f->Get("htrackInPads_constField"); 
     auto *histo2 = (TH2S*)f->Get("htrackInPads_gladField"); 
+    auto *histo3 = (TH2S*)f->Get("htrackInPads_gladField_mid"); 
 
     
     if (histo1 == NULL)
@@ -212,15 +216,25 @@ void laserVis(TString gladFieldSource = "../proj/Prototype/laser_gen_gladField.r
     }
     else
     {
+        
         // Get the projections
-        auto *projConst = histo1->ProfileX();
-        auto *projGlad = histo2->ProfileX();
+        auto *projConst = histo1->ProfileY();
+        auto *projGlad = histo2->ProfileY();
+        auto *projGlad_mid = histo3->ProfileY();
 
         // Draw and compare both results
         auto *c = new TCanvas();
         projConst->Draw();
         projGlad->SetLineColor(kRed);
         projGlad->Draw("same");
+        projGlad_mid->SetLineColor(kGreen);
+        projGlad_mid->Draw("same");
+        
+
+
+
+
+       
     }
 
 
