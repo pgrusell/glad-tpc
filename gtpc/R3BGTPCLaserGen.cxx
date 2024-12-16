@@ -193,8 +193,6 @@ void R3BGTPCLaserGen::Exec(Option_t*)
 
     R3BGladFieldMap* gladField = (R3BGladFieldMap*)FairRunAna::Instance()->GetField();
 
-
-
     Int_t histoBins = 2 * fHalfSizeTPC_X * fSizeOfVirtualPad;
     Int_t histoBins2 = 2 * fHalfSizeTPC_Z * fSizeOfVirtualPad;
     auto *histoID = new TH2D("histoID", "histoID", histoBins, 0, histoBins, histoBins2, 0, histoBins2);
@@ -228,7 +226,7 @@ void R3BGTPCLaserGen::Exec(Option_t*)
     // Using here m, V, T, s just to simplify in SI system...
     Double_t E_x = 0;
     Double_t E_z = 0;
-    Double_t E_y = 10000; //(100 V/cm) TODO check value, move to parameter container
+    Double_t E_y = 25000;
     Double_t B_x = 0.;
     Double_t B_y = 0.;
     Double_t B_z = 0.;
@@ -284,9 +282,6 @@ void R3BGTPCLaserGen::Exec(Option_t*)
     cout << "Field for (12.122176, 10, 156.11626) in R3B coordinates or (10, 10, -10) in field map coordinates: " << B_x
          << " " << B_y << " " << B_z << " " << endl;
 
-    //Double_t fMaxLength = 20000;
-    //Double_t fPointDistance = 1/100;
-
     // Express the angles in rad 
 	fAlpha *= TMath::Pi() / 180.;
 	fBeta *= TMath::Pi() / 180.;
@@ -320,15 +315,14 @@ void R3BGTPCLaserGen::Exec(Option_t*)
     TRandom3 rndGen;
     for (Int_t k = 0; k < fMaxLength; k++)
 	{
-
         Double_t r = rndGen.Uniform(0, rMin);
 
         // Parametrize the straight line with beta and alpha angles
 	    Double_t xval = r * cos(fBeta) * sin(fAlpha);
  	    Double_t zval = fZIn + r * cos(fBeta) * cos(fAlpha);
 	    Double_t yval = fYIn + r * sin(fBeta);
-
-	    ele_y_init = yval -fHalfSizeTPC_Y;
+		
+	    ele_y_init = yval - fHalfSizeTPC_Y;
         ele_x_init =+ cos(-TargetAngle) * (xval) + sin(-TargetAngle) * (zval);
         ele_z_init = (TargetOffsetZ_FM - fHalfSizeTPC_Z) - sin(-TargetAngle) * (xval) + cos(-TargetAngle) * (zval);
 
@@ -355,8 +349,6 @@ void R3BGTPCLaserGen::Exec(Option_t*)
                 B_x = 0.1 * gladField->GetBx(ele_x, ele_y, ele_z); // Field components return in [kG], moved to [T]
                 B_y = 0.1 * gladField->GetBy(ele_x, ele_y, ele_z);
                 B_z = 0.1 * gladField->GetBz(ele_x, ele_y, ele_z);
-
-                
 
                 moduleB = TMath::Sqrt(B_x * B_x + B_y * B_y + B_z * B_z); // in [T]
                 cteMod = 1 / (1 + mu * mu * moduleB * moduleB);           // SI
@@ -398,11 +390,9 @@ void R3BGTPCLaserGen::Exec(Option_t*)
             // 2) Get the ID of the bin filled in each event
             // 3) This ID can be used to reconstruct the histogram by inverting the process
 
-            projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) - fOffsetX;
-            projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z)) - fOffsetZ;
-
-            std::cout << projX << " " << projZ << " \n"; 
-
+            projX = +cos(TargetAngle) * ele_x + sin(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
+            projZ = -sin(TargetAngle) * ele_x + cos(TargetAngle) * (ele_z - (TargetOffsetZ_FM - fHalfSizeTPC_Z));
+            
 	        Double_t padX, padZ;
             padX = histoBins * projX / 2. / fHalfSizeTPC_X;
 	        padZ = histoBins2 * projZ / 2. / fHalfSizeTPC_Z;
