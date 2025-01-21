@@ -1,6 +1,7 @@
 *.swp
 *.root
 *.log
+.DS_Store
 gphysi.dat
 core_dump*
 build
