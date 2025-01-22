@@ -1,18 +1,18 @@
 ##############################################################################
-#   Copyright (C) 2018 GSI Helmholtzzentrum für Schwerionenforschung GmbH    #
-#   Copyright (C) 2018-2025 Members of the R3B Collaboration                 #
+#   Copyright (C) 2019 GSI Helmholtzzentrum für Schwerionenforschung GmbH    #
+#   Copyright (C) 2019 Members of R3B Collaboration                          #
 #                                                                            #
 #             This software is distributed under the terms of the            #
-#                 GNU Lesser General Public Licence (GPL) version 3,         #
+#                 GNU General Public Licence (GPL) version 3,                #
 #                    copied verbatim in the file "LICENSE".                  #
 #                                                                            #
 # In applying this license GSI does not waive the privileges and immunities  #
 # granted to it by virtue of its status as an Intergovernmental Organization #
 # or submit itself to any jurisdiction.                                      #
 ##############################################################################
-
-# Create a library called "libR3BGTPCReconstruction" which includes the source 
-# files given in the array.
+# Create a library called "libR3BGTPCReconstruction" which includes the source files given in
+# the array .
+# The extension is already found.  Any number of sources could be listed here.
 
 set(SRCS
     triplclust/src/cluster.cxx
@@ -26,11 +26,14 @@ set(SRCS
     triplclust/src/option.cxx
     triplclust/src/util.cxx
     triplclust/src/graph.cxx
-    R3BGTPCTrackFinder.cxx)
+    R3BGTPCTrackFinder.cxx
+    R3BGTPCFitter.cxx 
+    R3BGTPCSpacePointMeasurement.cxx)
 
-# fill list of header files from list of source files
-# by exchanging the file extension
+# Fill list of header files from list of source files by exchanging the file extension
 change_file_extension(*.cxx *.h HEADERS "${SRCS}")
+
+message(STATUS "Ruta de Genfit2 (biblioteca): ${GENFIT2_LIBRARY_DIR}/libgenfit2.so")
 
 add_library_with_dictionary(
     LIBNAME
@@ -44,5 +47,7 @@ add_library_with_dictionary(
     INCLUDEDIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/triplclust/src
+    #${GENFIT2_INCLUDE_DIR}
     DEPENDENCIES
-    R3BGTPCData)
+    R3BGTPCData
+    GENFIT2::genfit2)

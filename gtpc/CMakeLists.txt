@@ -29,7 +29,7 @@ set(SRCS
     #R3BGTPCMappedPar.cxx
     R3BGTPCCal2Hit.cxx
     R3BGTPCMapped2Cal.cxx
-    #R3BGTPCHit2Track.cxx
+    R3BGTPCHit2Track.cxx
     #R3BGTPCCal2HitPar.cxx
     #R3BGTPCMapped2CalPar.cxx
 )
