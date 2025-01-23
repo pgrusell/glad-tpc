@@ -111,7 +111,6 @@ void R3BGTPCProjector::SetParameter()
     fTransDiff = fGTPCGasPar->GetTransDiff();         // [cm^2/ns]?
     fLongDiff = fGTPCGasPar->GetLongDiff();           // [cm^2/ns]?
     fFanoFactor = fGTPCGasPar->GetFanoFactor();
-    fSizeOfVirtualPad = fGTPCGeoPar->GetPadSize(); // 1 means pads of 1cm^2, 10 means pads of 1mm^2, ...
     fHalfSizeTPC_X = fGTPCGeoPar->GetActiveRegionx() / 2.;
     fHalfSizeTPC_Y = fGTPCGeoPar->GetActiveRegiony() / 2.;
     fHalfSizeTPC_Z = fGTPCGeoPar->GetActiveRegionz() / 2.;
@@ -338,7 +337,8 @@ void R3BGTPCProjector::Exec(Option_t*)
 
             // std::cout<<" proj Z "<<projZ<<" - proj Y "<<projY<<"\n";
             Int_t padID = fPadPlane->Fill((projZ - fOffsetZ) * 10.0,
-                                          (projX - fOffsetX) * 10.0); // in mm
+                                          (projX - fOffsetX) * 10.0) -
+                          1; // in mm for the padID
 
             // Deprecated code to remove
             /*(if (fDetectorType == 1)
@@ -391,8 +391,8 @@ void R3BGTPCProjector::Exec(Option_t*)
                     if (((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->GetVirtualPadID() == padID)
                     {
                         // already existing R3BGTPCProjPoint... add time and electron
-                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->AddCharge();                      //
-                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->SetTimeDistr(projTime / 1000, 1); // micros
+                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->AddCharge();                              //
+                        ((R3BGTPCProjPoint*)fGTPCProjPoint->At(pp))->SetTimeDistr(projTime / fTimeBinSize, 1); // micros
                         padFound = kTRUE;
                         break;
                     }
@@ -400,7 +400,7 @@ void R3BGTPCProjector::Exec(Option_t*)
                 if (!padFound)
                 {
                     new ((*fGTPCProjPoint)[nProjPoints]) R3BGTPCProjPoint(padID,
-                                                                          projTime / 1000, // micros
+                                                                          projTime / fTimeBinSize,
                                                                           1,
                                                                           evtID,
                                                                           PDGCode,

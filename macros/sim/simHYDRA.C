@@ -87,7 +87,7 @@ void simHYDRA(Int_t nEvents = 1000, TString GEOTAG = "Prototype", TString genera
 
     // Constant Magnetic field
     R3BFieldConst* constField = new R3BFieldConst();
-    double B_y = 20.; //[kG]
+    double B_y = 40.; //[kG]
     constField->SetField(0., B_y, 0.);
     constField->SetFieldRegion(-200.0, // x_min
                                200.0,  // x_max

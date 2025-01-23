@@ -36,8 +36,8 @@ include_directories( INCLUDE_DIRECTORIES
 
 link_directories(LINK_DIRECTORIES
 		  ${FAIRROOT_LIBRARY_DIR}
-                  ${FAIRROOTPATH}/lib
-                  ${R3BROOTPATH}/build/lib
+                  ${FAIRROOTPATH}/lib64
+                  ${R3BROOTPATH}/../build/lib
                   ${GENFIT2_LIBRARY_DIR}
 		  ${Boost_LOG_LIBRARY}
 		  ${Boost_LOG_SETUP_LIBRARY}
@@ -50,13 +50,13 @@ link_directories(LINK_DIRECTORIES
 message(STATUS ${R3BROOTPATH})
 
 add_library(fitter SHARED fitter.cxx)
-target_link_libraries(fitter ${ROOT_LIBRARIES} R3BGTPCReconstruction   ${GENFIT2_LIBRARY_DIR}/libgenfit2.so)
+target_link_libraries(fitter ${ROOT_LIBRARIES} R3BGTPCReconstruction R3BGTPCData GENFIT2::genfit2)
 
 add_executable(fitterExe fitter.cxx)
 
 target_link_libraries (fitterExe fitter
 ${ROOT_LIBRARIES}
-${GENFIT2_LIBRARY_DIR}/libgenfit2.so
+GENFIT2::genfit2
 ${Boost_LOG_LIBRARY}
 ${Boost_LOG_SETUP_LIBRARY}
 ${Boost_THREAD_LIBRARY}

@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/fitter.dir/fitter.cxx.o"
+  "CMakeFiles/fitter.dir/fitter.cxx.o.d"
   "libfitter.pdb"
   "libfitter.so"
 )

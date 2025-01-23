@@ -51,4 +51,5 @@ add_library_with_dictionary(
     ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDENCIES
     R3BGTPCData
-    R3BGTPCMap)
+    R3BGTPCMap
+    R3BGTPCReconstruction)

@@ -474,7 +474,7 @@ void R3BGTPCLangevin::Exec(Option_t*)
                 if (!padFound)
                 {
                     new ((*fGTPCProjPointCA)[nProjPoints]) R3BGTPCProjPoint(padID,
-                                                                            projTime / fTimeBinSize, // micros
+                                                                            projTime / fTimeBinSize,
                                                                             1,
                                                                             evtID,
                                                                             PDGCode,
